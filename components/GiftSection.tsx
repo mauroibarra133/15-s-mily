@@ -25,25 +25,23 @@ export const GiftSection: React.FC = () => {
     return () => observer.disconnect();
   }, []);
 
-  // CONTROL DE SCROLL: Bloquea el scroll del body cuando el modal está activo
+  // CONTROL DE SCROLL ULTRA ESTRICTO PARA WEB Y MÓVIL
   useEffect(() => {
     if (isModalVisible) {
+      // Bloqueamos en body e html para garantizar PC
       document.body.style.overflow = "hidden";
-      // Opcional: Evita saltos de layout si la barra de scroll desaparece
-      document.body.style.paddingRight = "var(--scrollbar-compensation, 0px)"; 
+      document.documentElement.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
-      document.body.style.paddingRight = "";
+      document.documentElement.style.overflow = "";
     }
 
-    // Limpieza al desmontar el componente por seguridad
     return () => {
       document.body.style.overflow = "";
-      document.body.style.paddingRight = "";
+      document.documentElement.style.overflow = "";
     };
   }, [isModalVisible]);
 
-  // SECUENCIA AL ABRIR: Primero se abre la caja, luego aparece el modal
   const handleOpen = () => {
     if (isBoxOpen) return; 
     setIsBoxOpen(true);
@@ -53,7 +51,6 @@ export const GiftSection: React.FC = () => {
     }, 500); 
   };
 
-  // SECUENCIA AL CERRAR: Primero se va el modal, luego se cierra la caja
   const handleClose = (e: React.MouseEvent) => {
     e.stopPropagation(); 
     setIsModalVisible(false);
@@ -101,39 +98,40 @@ export const GiftSection: React.FC = () => {
       </div>
 
       {/* MODAL FLOTANTE */}
-      {isModalVisible && (
-        <div className={styles["modal-overlay"]} onClick={handleClose}>
-          <Card 
-            className={styles["gift-box__content"]} 
-            onClick={(e) => e.stopPropagation()} 
-          >
-            <button className={styles["modal-close"]} onClick={handleClose}>×</button>
-            
-            <span className={styles["modal-icon"]}>🎁</span>
-            <p className={styles["gift-box__content-label"]}>DATOS BANCARIOS</p>
-            <h3 className={`${styles["gift-box__content-title"]} ornate-headline`}>
-              Mercado Pago
-            </h3>
-            
-            <div className={styles["gift-box__content-details"]}>
-              <div className={styles["detail-row"]}>
-                <p className={styles["gift-box__content-detail-label"]}>Alias:</p>
-                <p className={`${styles["gift-box__content-detail-value"]} ornate-headline`}>
-                  miluuu.ibarraa
-                </p>
-              </div>
-              <div className={styles["detail-row"]}>
-                <p className={styles["gift-box__content-detail-label"]}>Titular:</p>
-                <p className={styles["gift-box__content-owner"]}>Milagros Ibarra</p>
-              </div>
-            </div>
-
-            <button className={styles["copy-button"]} onClick={handleCopyAlias}>
-              Copiar Alias
-            </button>
-          </Card>
+{isModalVisible && (
+  <div className={styles["modal-overlay"]} onClick={handleClose}>
+    {/* Cambiado de <Card> a <div> para aceptar el onClick y el stopPropagation de forma nativa */}
+    <div 
+      className={`${styles["gift-box__content"]} card`} /* Mantiene tus estilos y si Card usa una clase global 'card' la agregas acá */
+      onClick={(e) => e.stopPropagation()} 
+    >
+      <button className={styles["modal-close"]} onClick={handleClose}>×</button>
+      
+      <span className={styles["modal-icon"]}>🎁</span>
+      <p className={styles["gift-box__content-label"]}>DATOS BANCARIOS</p>
+      <h3 className={`${styles["gift-box__content-title"]} ornate-headline`}>
+        Mercado Pago
+      </h3>
+      
+      <div className={styles["gift-box__content-details"]}>
+        <div className={styles["detail-row"]}>
+          <p className={styles["gift-box__content-detail-label"]}>Alias:</p>
+          <p className={`${styles["gift-box__content-detail-value"]} ornate-headline`}>
+            miluuu.ibarraa
+          </p>
         </div>
-      )}
+        <div className={styles["detail-row"]}>
+          <p className={styles["gift-box__content-detail-label"]}>Titular:</p>
+          <p className={styles["gift-box__content-owner"]}>Milagros Ibarra</p>
+        </div>
+      </div>
+
+      <button className={styles["copy-button"]} onClick={handleCopyAlias}>
+        Copiar Alias
+      </button>
+    </div>
+  </div>
+)}
     </section>
   );
 };
