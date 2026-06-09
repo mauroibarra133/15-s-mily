@@ -1,0 +1,44 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-inter), Arial, sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+  border-radius: var(--border-radius-full);
+}
+
+.button--silver {
+  background: linear-gradient(135deg, #c0c6db 0%, #ffffff 50%, #c0c6db 100%);
+  color: #131314;
+}
+
+.button--silver:active {
+  transform: scale(0.95);
+}
+
+.button--text {
+  background: transparent;
+  color: var(--color-on-surface-variant);
+  border-bottom: 2px transparent solid;
+  padding-bottom: var(--spacing-base);
+  border-radius: 0;
+  font-size: 16px;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.button--text:hover {
+  color: var(--color-primary);
+}
+
+.button--glow:hover {
+  box-shadow: 0 0 20px rgba(192, 198, 219, 0.4);
+}

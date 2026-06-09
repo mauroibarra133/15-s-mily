@@ -1,0 +1,100 @@
+.event {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 86px;
+  padding-bottom: 48px;
+  padding-left: var(--spacing-container-padding-mobile);
+  padding-right: var(--spacing-container-padding-mobile);
+  text-align: center;
+}
+
+.event__background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.event__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 42, 180, 0.815) 0%,
+    transparent 50%,
+    rgba(0, 42, 180, 0.815) 100%
+  );
+}
+
+.event__content {
+  position: relative;
+  z-index: 10;
+  max-width: 56rem;
+  width: 100%;
+}
+
+.event__tag {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 16px; /* label-caps */
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  display: block;
+  margin-bottom: 16px;
+}
+
+.event__title {
+  font-size: 60px; /* display-lg-mobile */
+  line-height: 68px;
+  letter-spacing: -0.01em;
+  font-weight: 700;
+  padding-top: 16px;
+  padding-bottom: 16px;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  font-family: var(--font-ms-madi), sans-serif;
+}
+
+.event__subtitle {
+  font-size: 24px; /* headline-sm */
+  line-height: 32px;
+  color: var(--color-secondary);
+  font-style: italic;
+  opacity: 0.8;
+  font-family: "Chelsea Market", system-ui;
+  text-transform: uppercase;
+}
+
+.event__imageWrapper {
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+}
+
+.event__imageFrame {
+  position: relative;
+  width: 256px;
+  overflow: hidden;
+}
+
+.event__portrait {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+@media (min-width: 768px) {
+  .event__title {
+    font-size: 64px; /* display-lg */
+    line-height: 72px;
+    letter-spacing: -0.02em;
+  }
+
+  .event__imageFrame {
+    width: 380px;
+  }
+}

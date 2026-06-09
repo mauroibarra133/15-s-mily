@@ -1,0 +1,150 @@
+.countdownContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  width: 100%;
+  overflow: hidden; /* Evita que rompa el layout horizontal del celu */
+}
+
+/* ==========================================================================
+   CONFIGURACIÓN PREMIUM MÁS GRANDE PARA ESCRITORIO / WEB
+   ========================================================================== */
+.silverBlueClock {
+  /* Tiempos y Espaciados incrementados */
+  --fcc-flip-duration: 0.6s;
+  --fcc-spacing: 20px; /* Incrementado de 12px a 20px */
+  --fcc-digit-block-spacing: 6px; /* Más espacio entre dígitos del mismo bloque */
+
+  /* Dimensiones de los bloques aumentadas para escritorio */
+  --fcc-digit-block-width: 64px;   /* Incrementado de 46px a 64px */
+  --fcc-digit-block-height: 96px;  /* Incrementado de 68px a 96px */
+  --fcc-digit-block-radius: 8px;
+
+  /* Fondo de tarjeta: Degradado Plateado Metálico */
+  --fcc-background: linear-gradient(135deg, #e6e6e6 0%, #ffffff 55%, #b3b3b3 100%);
+  
+  /* Color de los números: Azul y Fuente más imponente */
+  --fcc-digit-color: #0052cc; 
+  --fcc-digit-font-size: 52px; /* Incrementado de 34px a 52px */
+
+  /* Línea horizontal del medio */
+  --fcc-divider-color: rgba(0, 0, 0, 0.12);
+  --fcc-divider-height: 1px;
+
+  /* Separadores de dos puntos */
+  --fcc-separator-size: 8px; /* Separadores más visibles */
+  --fcc-separator-color: #0052cc;
+
+  /* Etiquetas inferiores (DÍAS, HORAS, etc.) */
+  --fcc-label-color: #a4b3d6;
+  --fcc-label-font-size: 13px; /* Más legible en web */
+  font-weight: 600;
+  letter-spacing: 1.5px;
+}
+
+/* Sombreado y relieve tridimensional */
+.silverBlueClock :global(.fcc__digit-block) {
+  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.4), inset 0px 1px 0px rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* ==========================================================================
+   MÓVILES Y PANTALLAS PEQUEÑAS (Asegura compatibilidad estricta desde 320px)
+   ========================================================================== */
+@media (max-width: 600px) {
+  .silverBlueClock {
+    /* Achicamos el espaciado general y entre los dos puntos */
+    --fcc-spacing: 6px; 
+    --fcc-digit-block-spacing: 2px; 
+
+    /* Reducción proporcional estricta de las tarjetas para pantallas móviles */
+    --fcc-digit-block-width: 32px;
+    --fcc-digit-block-height: 48px;
+    --fcc-digit-block-radius: 4px;
+
+    /* Tamaño de la fuente numérica en móvil */
+    --fcc-digit-font-size: 24px;
+
+    /* Puntos divisores más chicos */
+    --fcc-separator-size: 4px;
+
+    /* Etiquetas de texto ajustadas */
+    --fcc-label-font-size: 9px;
+    letter-spacing: 0.5px;
+  }
+
+  /* Ajustamos el cartel final para que no desborde en el celu */
+  .countdown__finished {
+    font-size: 1.8rem; 
+  }
+  
+  .finishedWrapper {
+    padding: 1.5rem 1rem;
+    width: 90%;
+  }
+}
+
+/* ==========================================================================
+   ESTILOS DEL CARTEL DE FINALIZACIÓN
+   ========================================================================== */
+.finishedWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 2rem;
+  backdrop-filter: blur(8px); 
+  animation: scaleUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.finishedIcon {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  animation: partyTada 1.5s ease infinite;
+}
+
+.countdown__finished {
+  font-size: 2.8rem; 
+  font-weight: bold;
+  text-align: center;
+  margin-top: 0;
+  background: linear-gradient(135deg, #ffffff 0%, #a4b3d6 40%, #0052cc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 12px rgba(74, 140, 238, 0.6)); 
+  letter-spacing: 1px;
+  line-height: 1.2;
+  animation: pulse 2s infinite;
+}
+
+.finishedSubtitle {
+  color: #a4b3d6;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin-top: 1rem;
+  opacity: 0.8;
+}
+
+/* ==========================================================================
+   ANIMACIONES
+   ========================================================================== */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes partyTada {
+  0% { transform: scale(1); }
+  10%, 20% { transform: scale(0.9) rotate(-3deg); }
+  30%, 50%, 70%, 90% { transform: scale(1.1) rotate(3deg); }
+  40%, 60%, 80% { transform: scale(1.1) rotate(-3deg); }
+  100% { transform: scale(1) rotate(0); }
+}

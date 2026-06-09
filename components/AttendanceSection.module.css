@@ -1,0 +1,99 @@
+.attendance-section {
+  padding-top: var(--spacing-section-gap);
+  padding-bottom: var(--spacing-section-gap);
+  padding-left: var(--spacing-container-padding-mobile);
+  padding-right: var(--spacing-container-padding-mobile);
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 1s ease, transform 1s ease;
+}
+
+.attendance-section--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.attendance-section__card {
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  overflow: hidden;
+  padding: 32px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.attendance-section__glow {
+  position: absolute;
+  top: -96px;
+  right: -96px;
+  width: 256px;
+  height: 256px;
+  background-color: rgba(132, 173, 255, 0.1); /* primary/10 */
+  filter: blur(100px);
+  border-radius: var(--border-radius-full);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.attendance-section__content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.attendance-section__header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.attendance-section__title {
+  font-size: 32px; /* headline-md */
+  line-height: 40px;
+  font-weight: 600;
+}
+
+.attendance-section__subtitle {
+  font-size: 16px; /* body-md */
+  color: var(--color-on-surface-variant);
+}
+
+.attendance-section__form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.attendance-section__form-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+.attendance-section__submit-btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--border-radius-xl);
+  font-size: 12px; /* label-caps */
+  font-weight: 600;
+  letter-spacing: 0.2em;
+}
+
+@media (min-width: 768px) {
+  .attendance-section {
+    padding-left: var(--spacing-container-padding-desktop);
+    padding-right: var(--spacing-container-padding-desktop);
+  }
+
+  .attendance-section__card {
+    padding: 48px;
+  }
+
+  .attendance-section__form-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

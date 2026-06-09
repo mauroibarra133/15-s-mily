@@ -1,0 +1,67 @@
+:root {
+  /* Colors */
+  --color-on-tertiary-fixed: #003340;
+  --color-on-secondary: #00175f;
+  --color-on-surface-variant: #94afba;
+  --color-on-tertiary-container: #004959;
+  --color-surface-container-lowest: #000000;
+  --color-on-primary-fixed-variant: #002a61;
+  --color-surface-variant: #002a35;
+  --color-secondary: #7f97ff;
+  --color-error-container: #9f0519;
+  --color-tertiary-fixed: #59d8fd;
+  --color-surface-container-high: #00232d;
+  --color-on-secondary-fixed-variant: #2144bc;
+  --color-on-secondary-container: #c5ceff;
+  --color-on-error: #490006;
+  --color-on-error-container: #ffa8a3;
+  --color-tertiary: #8fe3ff;
+  --color-surface-container-highest: #002a35;
+  --color-primary-fixed: #6c9fff;
+  --color-primary: #84adff;
+  --color-surface-bright: #00313d;
+  --color-inverse-primary: #145cbc;
+  --color-surface-container-low: #00161d;
+  --color-on-tertiary: #005265;
+  --color-on-primary-container: #00214f;
+  --color-background: #001016;
+  --color-secondary-fixed: #c7cfff;
+  --color-on-background: #d4f0fb;
+  --color-primary-container: #6c9fff;
+  --color-secondary-container: #1039b2;
+  --color-outline-variant: #324c55;
+  --color-surface-container: #001d25;
+  --color-surface-dim: #001016;
+  --color-inverse-surface: #f2fbff;
+  --color-tertiary-container: #59d8fd;
+  --color-tertiary-fixed-dim: #47caef;
+  --color-surface: #001016;
+  --color-outline: #5f7984;
+  --color-surface-tint: #84adff;
+  --color-on-surface: #d4f0fb;
+  --color-on-tertiary-fixed-variant: #005265;
+  --color-error: #ff716c;
+  --color-on-secondary-fixed: #00288e;
+  --color-on-primary: #002c65;
+  --color-inverse-on-surface: #3f5962;
+  --color-on-primary-fixed: #000000;
+  --color-primary-fixed-dim: #5b92f5;
+  --color-secondary-fixed-dim: #b4c1ff;
+  --color-error-dim: #d7383b;
+  --color-tertiary-dim: #47caef;
+  --color-secondary-dim: #7f97ff;
+  --color-primary-dim: #679cff;
+
+  /* Border Radius */
+  --border-radius-default: 0.25rem;
+  --border-radius-lg: 0.5rem;
+  --border-radius-xl: 0.75rem;
+  --border-radius-full: 9999px;
+
+  /* Spacing */
+  --spacing-section-gap: 64px;
+  --spacing-gutter: 24px;
+  --spacing-base: 8px;
+  --spacing-container-padding-desktop: 80px;
+  --spacing-container-padding-mobile: 24px;
+}

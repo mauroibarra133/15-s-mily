@@ -1,0 +1,319 @@
+.dress-code {
+  padding-top: var(--spacing-section-gap);
+  padding-bottom: var(--spacing-section-gap);
+  background-color: rgba(108, 159, 255, 0.05); /* primary-container/30 (~5% opacity) */
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 1s ease, transform 1s ease;
+  position: relative; /* Asegura el contexto para el Silk absoluto */
+  min-height: 100vh;
+}
+
+.dress-code--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.dress-code__container {
+  max-width: 72rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--spacing-container-padding-mobile);
+  padding-right: var(--spacing-container-padding-mobile);
+}
+
+.dress-code__header {
+  text-align: center;
+  margin-bottom: 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dress-code__title {
+  font-size: 32px; /* headline-md */
+  line-height: 40px;
+  font-weight: 600;
+}
+
+.dress-code__subtitle {
+  font-size: 18px; /* body-lg */
+  color: var(--color-on-surface-variant);
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ==========================================================================
+   NUEVO WRAPPER Y FUNCIONALIDAD DEL CARRUSEL
+   ========================================================================== */
+.dress-code__carousel-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.dress-code__carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth; /* Desplazamiento fluido nativo */
+  gap: var(--spacing-gutter);
+  padding-bottom: 32px;
+  
+  /* Ajuste móvil original para desborde en los bordes */
+  margin-left: calc(-1 * var(--spacing-container-padding-mobile));
+  margin-right: calc(-1 * var(--spacing-container-padding-mobile));
+  padding-left: var(--spacing-container-padding-mobile);
+  padding-right: var(--spacing-container-padding-mobile);
+  
+  /* Anclaje magnético por CSS */
+  scroll-snap-type: x mandatory; 
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Forzamos la desaparición visual de la barra de scroll */
+.hide-scrollbar {
+  -ms-overflow-style: none;  
+  scrollbar-width: none;  
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; 
+}
+
+.dress-code__card {
+  flex-shrink: 0;
+  width: 288px;
+  height: 450px;
+  position: relative;
+  border-radius: var(--border-radius-xl);
+  overflow: hidden;
+  border: 1px solid rgba(50, 76, 85, 0.3); /* outline-variant/30 */
+  cursor: pointer;
+  scroll-snap-align: center; /* Se imanta al centro de la pantalla al deslizar */
+}
+
+/* --- BOTONES FLOTANTES DE NAVEGACIÓN --- */
+.carousel-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(11, 18, 33, 0.4); /* Fondo oscuro semitransparente */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  color: #ffffff;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  user-select: none;
+}
+
+.carousel-nav:hover {
+  background: linear-gradient(135deg, #ffffff 0%, #c0c6db 100%);
+  color: #0b1221;
+  border-color: #ffffff;
+  box-shadow: 0 0 15px rgba(0, 82, 204, 0.6);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.carousel-nav:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+/* Posicionado estratégico de las flechas en los extremos */
+.carousel-nav--left {
+  left: -24px;
+}
+
+.carousel-nav--right {
+  right: -24px;
+}
+
+/* ==========================================================================
+   ESTILOS INTERNOS DE TARJETA Y PALETA (MANTENIDOS ORIGINALES)
+   ========================================================================== */
+.dress-code__card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s ease;
+}
+
+.dress-code__card:hover .dress-code__card-image {
+  transform: scale(1.1);
+}
+
+.dress-code__card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, var(--color-background), transparent);
+  opacity: 0.8;
+}
+
+.dress-code__card-content {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  z-index: 10;
+}
+
+.dress-code__card-category {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 12px; /* label-caps */
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: var(--color-primary);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.dress-code__card-title {
+  font-size: 24px; /* headline-sm */
+  line-height: 32px;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.dress-code__palette {
+  margin-top: 48px;
+  text-align: center;
+}
+
+.dress-code__palette-label {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 12px; /* label-caps */
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: var(--color-primary);
+  margin-bottom: 24px;
+}
+
+.dress-code__palette-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+}
+
+.dress-code__palette-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.dress-code__palette-dot {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--border-radius-full);
+  border: 2px solid rgba(50, 76, 85, 0.3); /* outline-variant/30 */
+  box-shadow: 0 0 15px rgba(192, 198, 219, 0.3);
+}
+
+.dress-code__palette-name {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 12px;
+  color: var(--color-on-surface-variant);
+  font-weight: 600;
+  letter-spacing: 0.15em;
+}
+
+/* ==========================================================================
+   MEDIA QUERIES INTEGRADOS Y MEJORADOS
+   ========================================================================== */
+@media (min-width: 768px) {
+  .dress-code__container {
+    padding-left: var(--spacing-container-padding-desktop);
+    padding-right: var(--spacing-container-padding-desktop);
+  }
+
+  .dress-code__carousel {
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+/* En teléfonos ocultamos las flechas físicas ya que el deslizamiento táctil es nativo */
+@media (max-width: 1024px) {
+  .carousel-nav {
+    display: none;
+  }
+  
+  .dress-code__carousel {
+    /* Mantiene los márgenes negativos para desborde lateral estético en móviles */
+    margin-left: calc(-1 * var(--spacing-container-padding-mobile));
+    margin-right: calc(-1 * var(--spacing-container-padding-mobile));
+    padding-left: var(--spacing-container-padding-mobile);
+    padding-right: var(--spacing-container-padding-mobile);
+  }
+}
+
+/* ==========================================================================
+   ADAPTACIÓN EXTREMA PARA MÓVILES (DESDE 320PX HASTA 480PX)
+   ========================================================================== */
+@media (max-width: 480px) {
+  .dress-code {
+    padding-top: calc(var(--spacing-section-gap) * 0.6);
+    padding-bottom: calc(var(--spacing-section-gap) * 0.6);
+  }
+
+  .dress-code__title {
+    font-size: 26px; /* Un poco más compacto para que no rompa en dos líneas */
+    line-height: 34px;
+  }
+
+  .dress-code__subtitle {
+    font-size: 15px;
+    line-height: 22px;
+  }
+
+  .dress-code__header {
+    margin-bottom: 36px; /* Reducimos el espacio muerto superior */
+  }
+
+  /* Forzamos a la tarjeta a ser responsiva según el ancho real de la pantalla */
+  .dress-code__card {
+    width: 78vw; /* Ocupa casi todo el ancho, dejando ver un 22% de la tarjeta de al lado */
+    height: 380px; /* Reducimos la altura proporcionalmente para mantener el ratio */
+    scroll-snap-align: center; /* Se imanta perfecto en el medio */
+  }
+
+  /* Ajustamos el tamaño del texto interno de la tarjeta */
+  .dress-code__card-title {
+    font-size: 20px;
+    line-height: 28px;
+  }
+
+  .dress-code__card-content {
+    bottom: 16px;
+    left: 16px;
+  }
+
+  /* Reducción de la sección de paleta de colores para que no desborde */
+  .dress-code__palette {
+    margin-top: 32px;
+  }
+
+  .dress-code__palette-list {
+    gap: 16px; /* Juntamos un poquito más los círculos */
+  }
+
+  .dress-code__palette-dot {
+    width: 50px; /* Círculos levemente más chicos */
+    height: 50px;
+  }
+
+  .dress-code__palette-name {
+    font-size: 10px;
+  }
+}

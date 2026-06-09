@@ -1,0 +1,219 @@
+.location {
+  padding-top: var(--spacing-section-gap);
+  padding-bottom: var(--spacing-section-gap);
+  padding-left: var(--spacing-container-padding-mobile);
+  padding-right: var(--spacing-container-padding-mobile);
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 1s ease, transform 1s ease;
+  background-color: rgba(0, 4, 19, 0.925);
+  min-height: 100vh;
+  
+  /* Centrado global de la sección en la pantalla */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+}
+
+.location--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Contenedor principal de la estructura interna */
+.location__mainWrapper {
+  width: 100%;
+  max-width: 72rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 48px; /* Separación limpia entre el bloque de tarjetas y el Countdown */
+}
+
+/* Contenedor de las dos tarjetas (Por defecto en móvil va en una sola columna) */
+.location__container {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  align-items: stretch; /* Fuerza a que ambas tarjetas tengan la misma altura */
+}
+
+.location__galaxy {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+/* Tarjeta de detalles de la celebración */
+.location__details {
+  padding: 48px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+  width: 100%;
+  height: 100%;
+}
+
+.location__icon {
+  color: var(--color-primary);
+  font-size: 48px;
+}
+
+.location__title {
+  font-size: 32px; /* headline-md */
+  line-height: 40px;
+  font-weight: 600;
+}
+
+.location__info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.location__item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.location__label {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 12px; /* label-caps */
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: var(--color-primary);
+  margin-bottom: 4px;
+}
+
+.location__value {
+  font-size: 18px; /* body-lg */
+  font-weight: 400;
+  color: var(--color-on-surface);
+}
+
+.location__subvalue {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 16px; /* body-md */
+  color: var(--color-on-surface-variant);
+}
+
+.location__divider {
+  height: 1px;
+  background-color: rgba(50, 76, 85, 0.3); /* outline-variant/30 */
+  width: 50%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Wrapper del Mapa de Google */
+.location__mapWrapper {
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  border-radius: var(--border-radius-xl);
+  overflow: hidden;
+  border: 1px solid rgba(50, 76, 85, 0.3); /* outline-variant/30 */
+  position: relative;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+}
+
+.location__map {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  filter: invert(90%) hue-rotate(180deg) brightness(0.8) contrast(1.2);
+}
+
+/* Envoltorio inferior centrado para el reloj */
+.location__countdownWrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ==========================================================================
+   MEDIA QUERIES: ESCRITORIO (Fuerza el diseño una al lado de la otra)
+   ========================================================================== */
+@media (min-width: 768px) {
+  .location {
+    padding-left: var(--spacing-container-padding-desktop);
+    padding-right: var(--spacing-container-padding-desktop);
+  }
+
+  .location__container {
+    /* Divide estrictamente el espacio en 2 columnas iguales en PC */
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    /* Margen amplio y elegante entre las dos tarjetas */
+    gap: 54px; 
+  }
+
+  .location__details {
+    max-width: 100%;
+  }
+
+  .location__mapWrapper {
+    max-width: 100%;
+    min-height: 450px; /* Le da más presencia al mapa en pantallas grandes */
+  }
+}
+
+/* ==========================================================================
+   MEDIA QUERIES: MÓVILES (Evita que el diseño quede gigante o rompa)
+   ========================================================================== */
+@media (max-width: 480px) {
+  .location {
+    padding-top: calc(var(--spacing-section-gap) * 0.5);
+    padding-bottom: calc(var(--spacing-section-gap) * 0.5);
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .location__mainWrapper {
+    gap: 28px;
+  }
+
+  .location__container {
+    grid-template-columns: 1fr !important; /* Regresa estricto a una sola columna */
+    gap: 16px;
+  }
+
+  /* Reducción del padding interno excesivo en teléfonos chicos */
+  .location__details {
+    padding: 24px 16px;
+    gap: 16px;
+  }
+
+  .location__title {
+    font-size: 26px;
+    line-height: 32px;
+  }
+
+  .location__value {
+    font-size: 16px;
+  }
+
+  .location__subvalue {
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  /* Reducimos la altura del mapa para optimizar el viewport vertical del celu */
+  .location__mapWrapper {
+    min-height: 260px;
+    height: 260px;
+  }
+}

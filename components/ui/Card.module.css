@@ -1,0 +1,15 @@
+.card {
+  border-radius: var(--border-radius-xl);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.card--glass {
+  background: rgba(11, 18, 33, 0.4);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(192, 198, 219, 0.2);
+}
+
+.card--default {
+  background-color: var(--color-surface-container);
+  border: 1px solid var(--color-outline-variant);
+}

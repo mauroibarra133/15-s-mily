@@ -1,0 +1,592 @@
+.gift-section {
+  padding-top: var(--spacing-section-gap);
+  padding-bottom: var(--spacing-section-gap);
+  padding-left: var(--spacing-container-padding-mobile);
+  padding-right: var(--spacing-container-padding-mobile);
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 1s ease, transform 1s ease;
+}
+
+.gift-section--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.gift-section__container {
+  max-width: 56rem;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.gift-section__header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.gift-section__title {
+  font-size: 32px; /* headline-md */
+  line-height: 40px;
+  font-weight: 600;
+}
+
+.gift-section__subtitle {
+  font-size: 16px; /* body-md */
+  color: var(--color-on-surface-variant);
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.gift-box {
+  cursor: pointer;
+  position: relative;
+  margin-left: auto;
+  margin-right: auto;
+  width: 256px;
+  height: 256px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.gift-box__wrapper {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gift-box__body {
+  width: 160px;
+  height: 160px;
+  background-color: rgba(132, 173, 255, 0.2); /* primary/20 */
+  border: 2px solid rgba(132, 173, 255, 0.4); /* primary/40 */
+  position: relative;
+  border-radius: var(--border-radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  overflow: visible;
+}
+
+.gift-box__lid {
+  position: absolute;
+  top: -16px;
+  width: 176px;
+  height: 32px;
+  background-color: var(--color-primary-fixed);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--border-radius-default);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform-origin: top;
+}
+
+.gift-box__ribbon-knot {
+  width: 48px;
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: var(--border-radius-full);
+}
+
+.gift-box__ribbon-vertical {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 32px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gift-box__ribbon-horizontal {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 64px;
+  height: 32px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Control del estado abierto en la caja (Activado por isBoxOpen) */
+.gift-box--open .gift-box__lid {
+  transform: translateY(-40px) rotateX(110deg);
+}
+
+.gift-box__instruction {
+  position: absolute;
+  bottom: -48px;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 12px; /* label-caps */
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: var(--color-primary);
+  transition: transform 0.3s ease;
+}
+
+.gift-box:hover .gift-box__instruction {
+  transform: scale(1.1);
+}
+
+.modal-overlay {
+  position: fixed !important; /* Forzamos fixed para que ignore transformaciones de padres */
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: rgba(0, 0, 0, 0.75); /* Oscurecemos un poco más el fondo */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  
+  /* Centrado matemático perfecto en pantalla completa */
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  
+  z-index: 99999 !important; /* Capa máxima absoluta sobre footers u otras secciones */
+  touch-action: none;
+  animation: fadeIn 0.3s ease forwards;
+}
+
+/* El cuadro interno del modal */
+.gift-box__content {
+  position: relative;
+  width: 90%;
+  max-width: 360px;
+  padding: 32px 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(164, 179, 214, 0.25);
+  background: #111827 !important; /* Color sólido oscuro de alta fidelidad para evitar transparencias rotas */
+  text-align: center;
+  animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.25) forwards;
+}
+
+/* Evitamos que la sección contenedora del regalo altere el z-index en web */
+.gift-section {
+  position: relative;
+  z-index: 10;
+}
+
+.gift-box__content-label {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 12px; /* label-caps */
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: var(--color-primary);
+  margin-bottom: 8px;
+}
+
+.gift-box__content-title {
+  font-size: 24px; /* headline-sm */
+  line-height: 32px;
+  margin-bottom: 24px;
+  color: #ffffff;
+}
+
+.gift-box__content-details {
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 16px;
+  border-radius: var(--border-radius-default);
+  border: 1px solid rgba(50, 76, 85, 0.4); /* outline-variant/30 */
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gift-box__content-detail-label {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 11px;
+  color: var(--color-on-tertiary-container);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}
+
+.gift-box__content-detail-value {
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.05em;
+  color: var(--color-primary);
+}
+
+.gift-box__content-owner {
+  font-size: 14px;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+/* Botón flotante para cerrar (X) */
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 26px;
+  cursor: pointer;
+  transition: color 0.2s, transform 0.2s;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+.modal-icon {
+  font-size: 36px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* Botón interactivo de copia */
+.copy-button {
+  margin-top: 24px;
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #0052cc, #003d99);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-default, 8px);
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 82, 204, 0.4);
+  transition: all 0.2s ease;
+}
+
+.copy-button:hover {
+  filter: brightness(1.15);
+  box-shadow: 0 6px 16px rgba(0, 82, 204, 0.6);
+}
+
+.copy-button:active {
+  transform: scale(0.98);
+}
+
+/* --- ANIMACIONES DE FLUJO --- */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}.gift-section {
+  padding-top: var(--spacing-section-gap);
+  padding-bottom: var(--spacing-section-gap);
+  padding-left: var(--spacing-container-padding-mobile);
+  padding-right: var(--spacing-container-padding-mobile);
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 1s ease, transform 1s ease;
+}
+
+.gift-section--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.gift-section__container {
+  max-width: 56rem;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.gift-section__header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.gift-section__title {
+  font-size: 32px; /* headline-md */
+  line-height: 40px;
+  font-weight: 600;
+}
+
+.gift-section__subtitle {
+  font-size: 16px; /* body-md */
+  color: var(--color-on-surface-variant);
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.gift-box {
+  cursor: pointer;
+  position: relative;
+  margin-left: auto;
+  margin-right: auto;
+  width: 256px;
+  height: 256px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.gift-box__wrapper {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gift-box__body {
+  width: 160px;
+  height: 160px;
+  background-color: rgba(132, 173, 255, 0.2); /* primary/20 */
+  border: 2px solid rgba(132, 173, 255, 0.4); /* primary/40 */
+  position: relative;
+  border-radius: var(--border-radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  overflow: visible;
+}
+
+.gift-box__lid {
+  position: absolute;
+  top: -16px;
+  width: 176px;
+  height: 32px;
+  background-color: var(--color-primary-fixed);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--border-radius-default);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform-origin: top;
+}
+
+.gift-box__ribbon-knot {
+  width: 48px;
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: var(--border-radius-full);
+}
+
+.gift-box__ribbon-vertical {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 32px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gift-box__ribbon-horizontal {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 64px;
+  height: 32px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Control del estado abierto en la caja (Activado por isBoxOpen) */
+.gift-box--open .gift-box__lid {
+  transform: translateY(-40px) rotateX(110deg);
+}
+
+.gift-box__instruction {
+  position: absolute;
+  bottom: -48px;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 12px; /* label-caps */
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: var(--color-primary);
+  transition: transform 0.3s ease;
+}
+
+.gift-box:hover .gift-box__instruction {
+  transform: scale(1.1);
+}
+
+/* ==========================================================================
+   ESTILOS PARA EL MODAL FLOTANTE SEGMENTADO
+   ========================================================================== */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px); /* Esmerilado premium */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  touch-action: none; /* Blindaje extra contra scroll por arrastre en pantallas táctiles */
+  animation: fadeIn 0.3s ease forwards;
+}
+
+/* Transformamos tu tarjeta original a un popup flotante adaptado */
+.gift-box__content {
+  position: relative;
+  width: 90%;
+  max-width: 360px;
+  z-index: 30;
+  padding: 32px 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(192, 198, 219, 0.3);
+  background: rgba(30, 41, 59, 0.7) !important; /* Asegura legibilidad sobre el blur */
+  text-align: center;
+  animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.25) forwards; /* Corregido 0.3w por 0.3s */
+}
+
+.gift-box__content-label {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 12px; /* label-caps */
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: var(--color-primary);
+  margin-bottom: 8px;
+}
+
+.gift-box__content-title {
+  font-size: 24px; /* headline-sm */
+  line-height: 32px;
+  margin-bottom: 24px;
+  color: #ffffff;
+}
+
+.gift-box__content-details {
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 16px;
+  border-radius: var(--border-radius-default);
+  border: 1px solid rgba(50, 76, 85, 0.4); /* outline-variant/30 */
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gift-box__content-detail-label {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 11px;
+  color: var(--color-on-tertiary-container);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}
+
+.gift-box__content-detail-value {
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.05em;
+  color: var(--color-primary);
+}
+
+.gift-box__content-owner {
+  font-size: 14px;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+/* Botón flotante para cerrar (X) */
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 26px;
+  cursor: pointer;
+  transition: color 0.2s, transform 0.2s;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+.modal-icon {
+  font-size: 36px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* Botón interactivo de copia */
+.copy-button {
+  margin-top: 24px;
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #0052cc, #003d99);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-default, 8px);
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 82, 204, 0.4);
+  transition: all 0.2s ease;
+}
+
+.copy-button:hover {
+  filter: brightness(1.15);
+  box-shadow: 0 6px 16px rgba(0, 82, 204, 0.6);
+}
+
+.copy-button:active {
+  transform: scale(0.98);
+}
+
+/* --- ANIMACIONES DE FLUJO --- */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
