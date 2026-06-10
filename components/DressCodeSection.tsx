@@ -2,27 +2,31 @@
 import React, { useEffect, useRef } from "react";
 import styles from "./DressCodeSection.module.css";
 import Silk from './Silk';
+import dressCodeImage from '../public/assets/dress-code-damas.jpeg';
+import dressCodeImage2 from '../public/assets/dress-code-hombres.jpeg';
+import dressCodeImage3 from '../public/assets/dress-code-damas-2.jpeg';
+import dressCodeImage4 from '../public/assets/dress-code-hombres-2.jpeg';
 
 const CAROUSEL_ITEMS = [
   {
     category: "DAMAS",
-    title: "Seda Celestial",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDZo9glTQOpD__Z3Ul2tAhTr6U7sZyCd20ldQbqWjtPq0AF5MmUMeVggfX06TpPMO6DmtgYnocmNTZYiJr9eYBGYJQvDsFM3Z6mpNn-lmeZNLqp-NxZ_qecZYIfJLywBeD8v9nBL5BZtPj8TuTU6svI_0FQTsL38l-_RSPrhO_KogeimmX03kyd0sJYq60MEw5gOOqot3EcnFI-AHQPjFJF8vMYGOKkjzCR6Jp8JplR69tshVWSEOTulYwCHQnVg7gb6mJkm0AswUg",
+    title: "",
+    image: dressCodeImage.src,
   },
   {
     category: "CABALLEROS",
-    title: "Trajes de Gala",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAcs9DgZPMuyK-wBUqS5oj7Bxa9R7Bp169RXwTdU1p1Q2j74z0wMITyHkJqg56ZL-IdHQUQBOhGQbVgsPq7NHU0ewvJ6UDIpvaRURJqaz-ycTz8IFHMaTxSmBswAQ-gjgTCOKfx4cgaCK4mBYa0duCyh_ZIHy0wIpLkmvO4Afnib3fu193SqptOs1KJRbpoSkMvPTIo1KDm5enxgZNfislcdyIw4HKqvuIoHL99h_6rA8VoPdF6kVWiOnG8rZDaGqkWkubnFZ40NAs",
+    title: "",
+    image: dressCodeImage2.src,
   },
   {
-    category: "ACCESORIOS",
-    title: "Detalles Plata",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuBXBZST50bcRrVz2Lgi37k050z8FYZmE-dvSuGOnc1gemtgjf3fiMDE9sPNiOGLvP9_HUJdjEn9gYRIjQyuN1rMaQtyizQepi6G-qp-hdjs9-VhIB0LS2Swul1jJaC29D8yOTH5WAc5z0zV_RHg8rC3bNiQJwGymxWYGMtJoF1a6ofTZA5MncIzzY4oXKYe2DrFt081RYNUe3rSVX5IEnhujmViVUMS29l-LI-JsKjIpFQgcvGJsEUoA0ZEfN_PWobzCl9LH08fJBo",
+    category: "DAMAS",
+    title: "",
+    image: dressCodeImage3.src,
   },
   {
-    category: "GRUPO",
-    title: "Estilo Noche",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuBksQExyo9lsaNjHqu7_BCbyP1_zVgY6Mj0raWnvq8umO5ADvn0tMHmN1804GEeo6fjPxRUniQTrfTxMcjt9prVKRqSUSBf059UUYpxpSiScBJ_m0JZevy_Myecd5L2Vemnf5pJuJCv_86r-8JHt0bm9nF5U5dwBj__vvgvs8RTdXT40ZCLSch_QBlc8obfr1drJXmnm9t7OkzbAPA8mnSwEW4OHwKel3B8RWbGs4bqzhrW9qnQPZBhC3pwqb8Q0SH387piVsF3v4",
+    category: "CABALLEROS",
+    title: "",
+    image: dressCodeImage4.src,
   },
 ];
 
@@ -31,7 +35,7 @@ const SUGGESTED_PALETTE = [
   { name: "Rosa Claro", color: "#fbcfe8" },
   { name: "Beige", color: "#f5f5dc" },
   { name: "Gris Claro", color: "#e2e8f0" },
-  { name: "Azul Muy Claro", color: "#e0f2fe" },
+  { name: "Celeste", color: "#e0f2fe" },
 ];
 
 export const DressCodeSection: React.FC = () => {
@@ -87,7 +91,7 @@ export const DressCodeSection: React.FC = () => {
             Dress Code: Elegante Sport
           </h2>
           <p className={styles["dress-code__subtitle"]}>
-            Te invitamos a brillar con nosotros. Paleta sugerida: Azul Noche, Plateado y Negro Clásico.
+            Te invitamos a brillar con nosotros. Paleta sugerida: colores claros. No uses azul ni negro ni plateado.
           </p>
         </div>
 
@@ -138,6 +142,7 @@ export const DressCodeSection: React.FC = () => {
 
         <div className={styles["dress-code__palette"]}>
           <p className={styles["dress-code__palette-label"]}>PALETA SUGERIDA</p>
+          <p className={styles["dress-code__palette-label"]}>Colores pasteles</p>
           <div className={styles["dress-code__palette-list"]}>
             {SUGGESTED_PALETTE.map((item, index) => (
               <div key={index} className={styles["dress-code__palette-item"]}>

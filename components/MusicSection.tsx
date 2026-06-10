@@ -12,7 +12,7 @@ export const MusicSection: React.FC = () => {
     if (!songInput.trim()) return;
 
     console.log("Canción sugerida:", songInput);
-    
+
     // Abrimos el modal personalizado en vez del alert nativo
     setShowModal(true);
     setSongInput("");
@@ -59,7 +59,7 @@ export const MusicSection: React.FC = () => {
           <iframe
             data-testid="embed-iframe"
             style={{ borderRadius: "12px" }}
-            src="https://open.spotify.com/embed/playlist/6zMXpRUec2oULC1jIOaaiO?utm_source=generator"
+            src="https://open.spotify.com/embed/playlist/2t9pyEpO0EvJB5bkjtCHQ7?utm_source=generator"
             width="100%"
             height="352"
             frameBorder="0"
@@ -100,8 +100,8 @@ export const MusicSection: React.FC = () => {
             <p className={styles.modalText}>
               Tu sugerencia fue recibida. ¡La música va a estar increíble!
             </p>
-            <button 
-              className={styles.modalButton} 
+            <button
+              className={styles.modalButton}
               onClick={() => setShowModal(false)}
             >
               GENIAL

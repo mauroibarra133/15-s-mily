@@ -38,13 +38,8 @@ export const PhotosSections: React.FC = () => {
 
           <div className={styles["photos-section__instagram-info"]}>
             <p className={`${styles["photos-section__instagram-tagline"]} ornate-headline`}>
-              PUEDEN USAR MI # EN TODAS SUS PUBLICACIONES DE INSTAGRAM
+              NO TE OLVIDES DE ETIQUETARME EN TODO LO QUE SUBAS
             </p>
-            <div className={styles["photos-section__hashtag-wrapper"]}>
-              <p className={`${styles["photos-section__hashtag"]} ornate-headline`}>
-                #15mily
-              </p>
-            </div>
           </div>
 
           <p className={styles["photos-section__footer-text"]}>
