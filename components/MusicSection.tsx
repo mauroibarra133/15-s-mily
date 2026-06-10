@@ -7,17 +7,6 @@ export const MusicSection: React.FC = () => {
   const [songInput, setSongInput] = useState("");
   const [showModal, setShowModal] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!songInput.trim()) return;
-
-    console.log("Canción sugerida:", songInput);
-
-    // Abrimos el modal personalizado en vez del alert nativo
-    setShowModal(true);
-    setSongInput("");
-  };
-
   return (
     <div className={styles.musicContainer}>
       {/* Contenedor de la Aurora de fondo */}
@@ -68,27 +57,6 @@ export const MusicSection: React.FC = () => {
             loading="lazy"
           ></iframe>
         </div>
-
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.inputWrapper}>
-            <label className={styles.label}>CANCIÓN / ARTISTA</label>
-            <input
-              type="text"
-              className={styles.input}
-              placeholder="Ej: Dancing Queen - ABBA"
-              value={songInput}
-              onChange={(e) => setSongInput(e.target.value)}
-            />
-          </div>
-
-          <button
-            type="submit"
-            className={styles.submitButton}
-            disabled={!songInput.trim()}
-          >
-            SUGERIR CANCIÓN
-          </button>
-        </form>
       </div>
 
       {/* MODAL DE AGRADECIMIENTO */}
