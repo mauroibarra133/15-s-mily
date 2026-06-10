@@ -27,10 +27,11 @@ const CAROUSEL_ITEMS = [
 ];
 
 const SUGGESTED_PALETTE = [
-  { name: "Silver", color: "#c0c6db" },
-  { name: "Midnight", color: "#0b1221" },
-  { name: "Pearl", color: "#f8fafc" },
-  { name: "Lavender Mist", color: "#cbd5e1" },
+  { name: "Lila Pastel", color: "#e2d4f0" },
+  { name: "Rosa Claro", color: "#fbcfe8" },
+  { name: "Beige", color: "#f5f5dc" },
+  { name: "Gris Claro", color: "#e2e8f0" },
+  { name: "Azul Muy Claro", color: "#e0f2fe" },
 ];
 
 export const DressCodeSection: React.FC = () => {

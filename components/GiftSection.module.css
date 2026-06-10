@@ -6,6 +6,7 @@
   opacity: 0;
   transform: translateY(40px);
   transition: opacity 1s ease, transform 1s ease;
+  background-color: #030a16;
 }
 
 .gift-section--visible {

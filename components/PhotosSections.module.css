@@ -28,6 +28,10 @@
   align-items: center;
   border-color: rgba(132, 173, 255, 0.3); /* primary/30 */
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/assets/tulipanes-azules.png');
+  background-size: cover;
+  background-position: center;
+  position: relative;
 }
 
 .photos-section__icon {
@@ -82,6 +86,7 @@
 
 .photos-section__action {
   padding-top: 16px;
+  width: 100%;
 }
 
 .photos-section__button {
@@ -95,10 +100,61 @@
   letter-spacing: 0.15em;
   text-transform: uppercase;
 }
+.photos-section__button--instagram {
+  background-image: url('/assets/ig-fondo.png');
+  background-size: cover;
+  background-position: center;
+  color: white;
+  font-family: var(--font-inter), sans-serif;
+}
 
+.photos-section__buttons-group {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+/* ==========================================================================
+   LÓGICA RESPONSIVE DE BOTONES (Mobile first por defecto)
+   ========================================================================== */
+
+/* En mobile ocultamos el texto largo de desktop */
+.button-text--desktop {
+  display: none;
+}
+
+/* En mobile mostramos el texto corto */
+.button-text--mobile {
+  display: inline;
+}
+
+/* Reducimos el padding del botón de Instagram en mobile para que quede más compacto / icon-only */
+.photos-section__button--instagram {
+  padding: 16px 20px;
+}
+
+/* Cambios a partir de Tablets y Computadoras de escritorio (768px o más) */
 @media (min-width: 768px) {
   .photos-section {
     padding-left: var(--spacing-container-padding-desktop);
     padding-right: var(--spacing-container-padding-desktop);
+  }
+
+  /* Mostramos el texto largo en desktop */
+  .button-text--desktop {
+    display: inline;
+  }
+
+  /* Ocultamos el texto corto de mobile */
+  .button-text--mobile {
+    display: none;
+  }
+
+  /* Devolvemos el padding normal al botón de Instagram */
+  .photos-section__button--instagram {
+    padding: 16px 40px;
   }
 }

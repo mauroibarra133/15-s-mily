@@ -46,7 +46,7 @@ export const EventSection: React.FC = () => {
               />
             </div>
           </div>
-
+          <Countdown /> 
         </div>
 
     </section >

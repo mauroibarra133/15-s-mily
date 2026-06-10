@@ -1,0 +1,268 @@
+/* Contenedor externo para centrar la tarjeta en la sección */
+.musicContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 100vh; /* Asegura un buen espacio vertical para lucir la aurora */
+  padding: 80px 20px;
+  position: relative; /* Clave para que la aurora no se escape de la sección */
+  overflow: hidden;   /* Evita scrolls raros si la aurora se agranda por el scale */
+  background-color: #030a16; /* Color de respaldo */
+}
+
+/* Tarjeta principal con el borde redondeado sutil y fondo oscuro */
+.musicCard {
+  position: relative;
+  z-index: 2; /* Por encima de la aurora */
+  background-color: rgba(3, 10, 22, 0.85); /* Un toque de opacidad para que la aurora retroilumine la tarjeta levemente */
+  backdrop-filter: blur(8px); /* Efecto glassmorphism premium para integrarse al fondo */
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 48px 32px;
+  width: 100%;
+  max-width: 640px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Nota musical flotante superior */
+.musicIcon {
+  font-size: 40px;
+  display: inline-block;
+  margin-bottom: 24px;
+  color: #4a8cee; /* Tono azul claro del asset de música */
+}
+
+/* Título Principal */
+.title {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: #ffffff;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+}
+
+/* Subtítulos descriptivos */
+.subtitle {
+  font-size: 16px;
+  color: #ffffff;
+  margin-bottom: 6px;
+  font-weight: 400;
+}
+
+.subvalue {
+  font-size: 13px;
+  color: #a4b3d6; /* Tono grisáceo azulado atenuado */
+  font-style: italic;
+  margin-bottom: 24px; /* Reducido levemente para mejorar el flujo con Spotify */
+}
+
+/* Contenedor del reproductor de Spotify alineado al diseño */
+.spotifyWrapper {
+  width: 100%;
+  max-width: 480px; /* Misma medida estética que el input y botón */
+  margin-bottom: 32px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  border-radius: 12px;
+  overflow: hidden; /* Evita que los bordes del iframe sobresalgan */
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* Envoltorio del campo de texto */
+.inputWrapper {
+  width: 100%;
+  max-width: 480px; /* Centra y acorta el input igual que en tu captura */
+  text-align: left;
+  margin-bottom: 32px;
+}
+
+/* Etiqueta superior en mayúsculas pequeñas */
+.label {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #a4b3d6;
+  letter-spacing: 2px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* El Input de tu foto: Sin bordes laterales, solo línea inferior */
+.input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+  padding: 10px 0;
+  color: #ffffff;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.input:focus {
+  border-bottom-color: #4a8cee; /* Brillo azul al hacer foco */
+}
+
+/* Placeholder sutil y apagado */
+.input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 15px;
+}
+
+/* BOTÓN DEGRADADO PREMIUM (Look de tu captura) */
+.submitButton {
+  width: 100%;
+  max-width: 480px;
+  padding: 14px 28px;
+  border: none;
+  border-radius: 30px; /* Estilo píldora / cápsula */
+  
+  /* Gradiente exacto: va desde un blanco tiza a un gris plateado muy fino */
+  background: linear-gradient(180deg, #ffffff 0%, #e1e5ee 100%);
+  color: #111827; /* Texto oscuro para contraste */
+  
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+  transition: all 0.25s ease;
+}
+
+.submitButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(74, 140, 238, 0.2);
+  filter: brightness(1.05);
+}
+
+.submitButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Estado deshabilitado si el input está vacío */
+.submitButton:disabled {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.3);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.auroraWrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  max-height: 1080px;
+  z-index: 1; /* Se posiciona al fondo */
+  pointer-events: none; /* Permite que el mouse interaction funcione en SoftAurora pero no bloquee los clicks de la tarjeta */
+}
+
+/* ==========================================================================
+   MODAL DE AGRADECIMIENTO
+   ========================================================================== */
+
+/* Fondo oscuro completo que cubre la pantalla */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(2, 5, 12, 0.6);
+  backdrop-filter: blur(10px); /* Desenfoque extra para el fondo al abrirse */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999; /* Por encima de absolutamente todo */
+  padding: 20px;
+  animation: fadeIn 0.3s ease forwards;
+}
+
+/* Cuerpo del modal tipo Glassmorphism */
+.modalContent {
+  background-color: rgba(3, 10, 22, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 40px 32px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+  animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.modalIcon {
+  font-size: 48px;
+  display: inline-block;
+  margin-bottom: 16px;
+}
+
+.modalTitle {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: #ffffff;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.modalText {
+  font-size: 14px;
+  color: #a4b3d6;
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+/* Botón que replica tu estilo premium de cápsula */
+.modalButton {
+  width: 100%;
+  max-width: 200px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 30px;
+  background: linear-gradient(180deg, #ffffff 0%, #e1e5ee 100%);
+  color: #111827;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.modalButton:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 6px 20px rgba(74, 140, 238, 0.15);
+}
+
+/* Animaciones fluidas de entrada */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

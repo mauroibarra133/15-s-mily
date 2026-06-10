@@ -4,7 +4,6 @@ import styles from "./LocationSection.module.css";
 import { Card } from "./ui/Card";
 import wandSparkles from "../public/assets/wand-sparkles-solid-full.svg";
 import Galaxy from "./Galaxy";
-import Countdown from "./Countdown";
 
 export const LocationSection: React.FC = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -34,6 +33,7 @@ export const LocationSection: React.FC = () => {
           saturation={1}
           hueShift={155}
           transparent
+          mouseInteraction={false}
         />
       </div>
       
@@ -93,7 +93,6 @@ export const LocationSection: React.FC = () => {
 
         {/* Bloque inferior: El reloj de la cuenta regresiva centrado abajo */}
         <div className={styles.location__countdownWrapper}>
-          <Countdown />
         </div>
 
       </div>

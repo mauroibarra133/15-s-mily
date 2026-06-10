@@ -6,6 +6,7 @@ import GiftSection from "@/components/GiftSection";
 import PhotosSections from "@/components/PhotosSections";
 import AttendanceSection from "@/components/AttendanceSection";
 import Footer from "@/components/Footer";
+import MusicSection from "@/components/MusicSection";
 
 export default function Home() {
   return (
@@ -16,8 +17,9 @@ export default function Home() {
         <LocationSection />
         <DressCodeSection />
         <GiftSection />
-        {/* <PhotosSections /> */}
-        {/* <AttendanceSection />  */}
+        <PhotosSections />
+        <MusicSection />
+        <AttendanceSection />
       </main>
       <Footer />
     </>
