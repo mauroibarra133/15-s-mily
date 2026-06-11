@@ -48,7 +48,6 @@ export const EventSection: React.FC = () => {
           </div>
           <Countdown /> 
         </div>
-
     </section >
   );
 };

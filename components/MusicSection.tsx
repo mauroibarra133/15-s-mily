@@ -4,7 +4,6 @@ import styles from "./MusicSection.module.css";
 import SoftAurora from "./SoftAurora";
 
 export const MusicSection: React.FC = () => {
-  const [songInput, setSongInput] = useState("");
   const [showModal, setShowModal] = useState(false);
 
   return (
