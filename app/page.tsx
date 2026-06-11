@@ -39,7 +39,6 @@ export default function Home() {
     <>
       {!envelopeDestroyed && <Envelope 
           onOpen={handleEnvelopeClick} 
-          isAudioPlaying={isAudioPlaying}
         />}
 
       {/* La invitación se vuelve visible progresivamente cuando la música empieza */}
