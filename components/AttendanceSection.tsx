@@ -13,7 +13,6 @@ export const AttendanceSection: React.FC = () => {
     elementCount: 20,
     spread: 50,
     elementSize: 25,
-
   });
   const sectionRef = useRef<HTMLDivElement>(null);
   const [formData, setFormData] = useState({
@@ -106,11 +105,11 @@ export const AttendanceSection: React.FC = () => {
               />
             </div>
 
-              <span id="like-btn" style={{display:'none'}}></span>
               <Button
                 type="submit"
                 variant="silver"
                 className={styles["attendance-section__submit-btn"]}
+                id="like-btn"
               >
                 ENVIAR CONFIRMACIÓN
              </Button>

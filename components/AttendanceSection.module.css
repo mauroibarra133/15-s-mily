@@ -6,7 +6,8 @@
   opacity: 0;
   transform: translateY(40px);
   transition: opacity 1s ease, transform 1s ease;
-  background-color: var(--color-on-primary-container);
+  background-color: var(--color-secondary);
+  z-index: 10;
 }
 
 .attendance-section--visible {
