@@ -14,6 +14,7 @@ import MusicSection from "@/components/MusicSection";
 export default function Home() {
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [envelopeDestroyed, setEnvelopeDestroyed] = useState(false);
+  const [showInvitation, setShowInvitation] = useState(false);
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -23,12 +24,23 @@ export default function Home() {
     setAudio(track);
   }, []);
 
+  // Check URL parameters to skip the envelope (e.g. when returning from pagar)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("skipEnvelope") === "true") {
+      setEnvelopeDestroyed(true);
+      setShowInvitation(true);
+    }
+  }, []);
+
   const handleEnvelopeClick = () => {
     if (audio && !isAudioPlaying) {
       audio.play()
         .then(() => setIsAudioPlaying(true))
         .catch((error) => console.log("Reproducción bloqueada:", error));
     }
+
+    setShowInvitation(true);
 
     setTimeout(() => {
       setEnvelopeDestroyed(true);
@@ -41,10 +53,10 @@ export default function Home() {
           onOpen={handleEnvelopeClick} 
         />}
 
-      {/* La invitación se vuelve visible progresivamente cuando la música empieza */}
+      {/* La invitación se vuelve visible progresivamente */}
       <div 
         className={`transition-all duration-1000 ease-out ${
-          isAudioPlaying 
+          showInvitation 
             ? "opacity-100 blur-0 scale-100" 
             : "opacity-0 blur-xl scale-95 h-screen overflow-hidden"
         }`}

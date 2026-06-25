@@ -1,0 +1,317 @@
+.admin-container {
+  min-height: 100vh;
+  padding: 40px var(--spacing-gutter);
+  background-color: var(--color-background);
+  color: var(--color-on-background);
+  font-family: var(--font-inter), Arial, sans-serif;
+}
+
+.login-screen {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--color-background);
+  padding: var(--spacing-gutter);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 24rem;
+  padding: 32px;
+  text-align: center;
+}
+
+.login-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  border-bottom: 1px solid rgba(192, 198, 219, 0.15);
+  padding-bottom: 16px;
+}
+
+.dashboard-title {
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+@media (min-width: 768px) {
+  .kpi-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.kpi-card {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.kpi-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-on-surface-variant);
+}
+
+.kpi-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-tertiary);
+}
+
+.kpi-subtext {
+  font-size: 13px;
+  color: var(--color-outline);
+}
+
+.table-card {
+  padding: 24px;
+  overflow: hidden;
+  background: rgba(11, 18, 33, 0.2);
+}
+
+.table-title-row {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.table-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+
+.admin-table th {
+  padding: 14px 16px;
+  font-weight: 600;
+  color: var(--color-on-surface-variant);
+  border-bottom: 1px solid rgba(192, 198, 219, 0.15);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+}
+
+.admin-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(192, 198, 219, 0.05);
+  color: var(--color-on-surface);
+  white-space: nowrap;
+}
+
+.admin-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.cell-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--border-radius-full);
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.cell-badge--empty {
+  color: rgba(192, 198, 219, 0.25);
+  cursor: default;
+}
+
+.cell-badge--pending {
+  background-color: rgba(241, 196, 15, 0.15);
+  color: #f1c40f;
+  border: 1px solid rgba(241, 196, 15, 0.4);
+}
+
+.cell-badge--pending:hover {
+  transform: scale(1.15);
+  background-color: rgba(241, 196, 15, 0.3);
+}
+
+.cell-badge--approved {
+  background-color: rgba(46, 204, 113, 0.15);
+  color: #2ecc71;
+  border: 1px solid rgba(46, 204, 113, 0.3);
+  cursor: default;
+}
+
+.cell-badge--rejected {
+  background-color: rgba(231, 76, 60, 0.15);
+  color: #e74c3c;
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  cursor: default;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  padding: var(--spacing-gutter);
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 28rem;
+  padding: 24px;
+  background-color: var(--color-surface-container-high);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--border-radius-xl);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(192, 198, 219, 0.1);
+  padding-bottom: 8px;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-primary);
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  color: var(--color-on-surface-variant);
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.modal-details {
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.receipt-viewer {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--color-outline);
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 8px 0;
+  min-height: 180px;
+}
+
+.receipt-img {
+  max-width: 100%;
+  max-height: 280px;
+  object-fit: contain;
+}
+
+.pdf-link {
+  color: var(--color-primary);
+  text-decoration: underline;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 20px;
+}
+
+.modal-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.btn-approve {
+  background: rgba(46, 204, 113, 0.12) !important;
+  color: #2ecc71 !important;
+  border: 1px solid rgba(46, 204, 113, 0.35) !important;
+  height: 48px !important;
+  padding: 0 24px !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.btn-approve:hover {
+  background: rgba(46, 204, 113, 0.22) !important;
+  box-shadow: 0 0 15px rgba(46, 204, 113, 0.25) !important;
+  transform: translateY(-1px);
+}
+
+.btn-approve:active {
+  transform: scale(0.98);
+}
+
+.btn-reject {
+  background: rgba(231, 76, 60, 0.12) !important;
+  color: #e74c3c !important;
+  border: 1px solid rgba(231, 76, 60, 0.35) !important;
+  height: 48px !important;
+  padding: 0 24px !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.btn-reject:hover {
+  background: rgba(231, 76, 60, 0.22) !important;
+  box-shadow: 0 0 15px rgba(231, 76, 60, 0.25) !important;
+  transform: translateY(-1px);
+}
+
+.btn-reject:active {
+  transform: scale(0.98);
+}
