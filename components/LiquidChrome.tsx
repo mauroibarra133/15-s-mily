@@ -29,6 +29,10 @@ export const LiquidChrome: React.FC<LiquidChromeProps> = ({
     const container = containerRef.current;
     const renderer = new Renderer({ antialias: true });
     const gl = renderer.gl;
+    if (!gl) {
+      console.warn("WebGL not supported, bypassing LiquidChrome animation.");
+      return;
+    }
     gl.clearColor(1, 1, 1, 1);
 
     const vertexShader = `

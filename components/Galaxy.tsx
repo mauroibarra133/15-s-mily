@@ -223,6 +223,10 @@ export default function Galaxy({
       premultipliedAlpha: false
     });
     const gl = renderer.gl;
+    if (!gl) {
+      console.warn("WebGL not supported, bypassing Galaxy animation.");
+      return;
+    }
 
     if (transparent) {
       gl.enable(gl.BLEND);

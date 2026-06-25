@@ -105,6 +105,10 @@ export default function DarkVeil({
     });
 
     const gl = renderer.gl;
+    if (!gl) {
+      console.warn("WebGL not supported, bypassing DarkVeil background.");
+      return;
+    }
     const geometry = new Triangle(gl);
 
     const program = new Program(gl, {
