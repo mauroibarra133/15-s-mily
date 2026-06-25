@@ -18,6 +18,9 @@ export const Footer: React.FC = () => {
           Contact Support
         </a>
       </div>
+      <a className={styles["footer__admin-btn"]} href="/admin">
+        Acceso Administrador 🔐
+      </a>
     </footer>
   );
 };
