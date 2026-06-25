@@ -11,6 +11,8 @@ import AttendanceSection from "@/components/AttendanceSection";
 import Footer from "@/components/Footer";
 import MusicSection from "@/components/MusicSection";
 
+import { logEvent } from "@/lib/analytics";
+
 export default function Home() {
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [envelopeDestroyed, setEnvelopeDestroyed] = useState(false);
@@ -22,6 +24,11 @@ export default function Home() {
     track.loop = true;
     track.volume = 0.5;
     setAudio(track);
+  }, []);
+
+  // Log page view event on mount
+  useEffect(() => {
+    logEvent("page_view_home");
   }, []);
 
   // Check URL parameters to skip the envelope (e.g. when returning from pagar)
@@ -40,6 +47,7 @@ export default function Home() {
         .catch((error) => console.log("Reproducción bloqueada:", error));
     }
 
+    logEvent("play_music");
     setShowInvitation(true);
 
     setTimeout(() => {

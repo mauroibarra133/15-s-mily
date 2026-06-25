@@ -35,6 +35,7 @@ export default function AdminDashboard() {
   // Data states
   const [guests, setGuests] = useState<Guest[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [analyticsEvents, setAnalyticsEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -71,6 +72,15 @@ export default function AdminDashboard() {
 
       if (paymentsError) throw paymentsError;
       setPayments(paymentsData || []);
+
+      // Fetch analytics events
+      const { data: analyticsData, error: analyticsError } = await supabase
+        .from("analytics_events")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (analyticsError) throw analyticsError;
+      setAnalyticsEvents(analyticsData || []);
     } catch (err) {
       console.error("Error fetching admin dashboard data:", err);
     } finally {
@@ -286,6 +296,47 @@ export default function AdminDashboard() {
     );
   }
 
+  // Analytics calculations
+  const totalPageViews = analyticsEvents.filter(
+    (e) => e.event_name === "page_view_home" || e.event_name === "page_view_portal"
+  ).length;
+
+  const uniqueSessionIds = new Set(
+    analyticsEvents
+      .filter((e) => e.event_name === "page_view_home" || e.event_name === "page_view_portal")
+      .map((e) => e.session_id)
+  );
+  const uniqueVisitors = uniqueSessionIds.size;
+
+  const playMusicCount = analyticsEvents.filter((e) => e.event_name === "play_music").length;
+
+  const copyAliasCount = analyticsEvents.filter(
+    (e) => e.event_name === "copy_alias_rsvp" || e.event_name === "copy_alias_portal"
+  ).length;
+
+  // Device calculations
+  const sessionDevices: Record<string, string> = {};
+  analyticsEvents.forEach((e) => {
+    if (e.device_type && !sessionDevices[e.session_id]) {
+      sessionDevices[e.session_id] = e.device_type;
+    }
+  });
+
+  let mobileCount = 0;
+  let desktopCount = 0;
+  let tabletCount = 0;
+
+  Object.values(sessionDevices).forEach((device) => {
+    if (device === "mobile") mobileCount++;
+    else if (device === "desktop") desktopCount++;
+    else if (device === "tablet") tabletCount++;
+  });
+
+  const totalSessionsWithDevice = mobileCount + desktopCount + tabletCount;
+  const mobilePercent = totalSessionsWithDevice > 0 ? Math.round((mobileCount / totalSessionsWithDevice) * 100) : 0;
+  const desktopPercent = totalSessionsWithDevice > 0 ? Math.round((desktopCount / totalSessionsWithDevice) * 100) : 0;
+  const tabletPercent = totalSessionsWithDevice > 0 ? Math.round((tabletCount / totalSessionsWithDevice) * 100) : 0;
+
   return (
     <main className={styles["admin-container"]}>
       {/* Dashboard Top Header */}
@@ -350,6 +401,74 @@ export default function AdminDashboard() {
               <span className={styles["kpi-subtext"]}>Requieren verificación de transferencia</span>
             </Card>
           </div>
+
+          {/* Analytics Statistics Panel */}
+          {!loading && (
+            <div style={{ marginBottom: "32px" }}>
+              <Card className={styles["table-card"]}>
+                <div style={{ padding: "24px" }}>
+                  <h2 className={styles["table-title"]} style={{ marginBottom: "20px" }}>
+                    Estadísticas de Navegación 📈
+                  </h2>
+                  <div className={styles["kpi-grid"]} style={{ marginBottom: "0", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <span className={styles["kpi-label"]}>Visitas Totales</span>
+                  <span style={{ fontSize: "24px", fontWeight: "700", color: "var(--color-tertiary)" }}>
+                    {totalPageViews}
+                  </span>
+                  <span style={{ fontSize: "12px", color: "var(--color-outline)" }}>
+                    Accesos a la invitación o portal
+                  </span>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <span className={styles["kpi-label"]}>Visitantes Únicos</span>
+                  <span style={{ fontSize: "24px", fontWeight: "700", color: "var(--color-tertiary)" }}>
+                    {uniqueVisitors}
+                  </span>
+                  <span style={{ fontSize: "12px", color: "var(--color-outline)" }}>
+                    Dispositivos individuales
+                  </span>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <span className={styles["kpi-label"]}>Tasa de Conversión</span>
+                  <span style={{ fontSize: "24px", fontWeight: "700", color: "var(--color-tertiary)" }}>
+                    {uniqueVisitors > 0 ? Math.round((totalConfirmedHeads / uniqueVisitors) * 100) : 0}%
+                  </span>
+                  <span style={{ fontSize: "12px", color: "var(--color-outline)" }}>
+                    Asistencias / visitantes únicos
+                  </span>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <span className={styles["kpi-label"]}>Interacciones Clave</span>
+                  <div style={{ fontSize: "13px", color: "var(--color-on-surface)", display: "flex", flexDirection: "column", gap: "4px", marginTop: "4px" }}>
+                    <div>🎵 Música reproducida: <strong>{playMusicCount}</strong> veces</div>
+                    <div>📋 CBU/Alias copiado: <strong>{copyAliasCount}</strong> veces</div>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <span className={styles["kpi-label"]}>Dispositivos de Entrada</span>
+                  <div style={{ marginTop: "4px" }}>
+                    <div style={{ display: "flex", height: "10px", borderRadius: "9999px", overflow: "hidden", background: "rgba(255, 255, 255, 0.1)", marginBottom: "6px" }}>
+                      <div style={{ width: `${mobilePercent}%`, background: "var(--color-primary)" }} title={`Celular: ${mobilePercent}%`} />
+                      <div style={{ width: `${desktopPercent}%`, background: "var(--color-tertiary)" }} title={`Computadora: ${desktopPercent}%`} />
+                      <div style={{ width: `${tabletPercent}%`, background: "#95a5a6" }} title={`Tablet: ${tabletPercent}%`} />
+                    </div>
+                    <div style={{ fontSize: "11px", color: "var(--color-on-surface-variant)", display: "flex", justifyContent: "space-between" }}>
+                      <span>📱 Cel: {mobilePercent}%</span>
+                      <span>💻 PC: {desktopPercent}%</span>
+                      {tabletPercent > 0 && <span>Tablet: {tabletPercent}%</span>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
 
           {/* Master Table Grid */}
           <Card className={styles["table-card"]}>

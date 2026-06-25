@@ -8,6 +8,7 @@ import { Select } from "./ui/Select";
 import { Button } from "./ui/Button";
 import { supabase } from "@/lib/supabaseClient";
 import { getCurrentPricingConfig, PricingConfig } from "@/lib/pricing";
+import { logEvent } from "@/lib/analytics";
 
 export const AttendanceSection: React.FC = () => {
   const { reward } = useReward("like-btn", "emoji", {
@@ -35,6 +36,7 @@ export const AttendanceSection: React.FC = () => {
   const handleCopyAlias = () => {
     navigator.clipboard.writeText("karysouvenirs");
     setCopiedAlias(true);
+    logEvent("copy_alias_rsvp");
     setTimeout(() => setCopiedAlias(false), 2000);
   };
 

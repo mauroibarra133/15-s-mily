@@ -8,6 +8,7 @@ import { Select } from "./ui/Select";
 import { Button } from "./ui/Button";
 import { supabase } from "@/lib/supabaseClient";
 import { getCurrentPricingConfig, PricingConfig } from "@/lib/pricing";
+import { logEvent } from "@/lib/analytics";
 
 interface Guest {
   id: string;
@@ -52,8 +53,14 @@ export const PaymentPortal: React.FC = () => {
   const handleCopyAlias = () => {
     navigator.clipboard.writeText("karysouvenirs");
     setCopiedAlias(true);
+    logEvent("copy_alias_portal");
     setTimeout(() => setCopiedAlias(false), 2000);
   };
+
+  // Log page view event on mount
+  useEffect(() => {
+    logEvent("page_view_portal");
+  }, []);
 
   // Load pricing configuration from server
   useEffect(() => {
