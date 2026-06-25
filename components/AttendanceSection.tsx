@@ -45,7 +45,7 @@ export const AttendanceSection: React.FC = () => {
     attendance: "Sí, asistiré",
     dietary: "",
     ticketType: "adulto",
-    informPayment: "no",
+    informPayment: "si",
     installmentNumber: "total",
   });
 
@@ -116,12 +116,10 @@ export const AttendanceSection: React.FC = () => {
     }
 
     const isAttending = formData.attendance === "Sí, asistiré";
-    const wantsToPay = isAttending && formData.informPayment === "si";
-
-    // If ticket is free (menor_0_2), we don't need a payment even if "si" was selected
     const isFreeTicket = isAttending && formData.ticketType === "menor_0_2";
+    const wantsToPay = isAttending && !isFreeTicket;
 
-    if (wantsToPay && !isFreeTicket && !receiptFile) {
+    if (wantsToPay && !receiptFile) {
       setSubmitStatus({
         type: "error",
         text: "Por favor, selecciona una foto o PDF del comprobante de transferencia.",
@@ -222,7 +220,7 @@ export const AttendanceSection: React.FC = () => {
         attendance: "Sí, asistiré",
         dietary: "",
         ticketType: "adulto",
-        informPayment: "no",
+        informPayment: "si",
         installmentNumber: "total",
       });
       setReceiptFile(null);
@@ -347,18 +345,8 @@ export const AttendanceSection: React.FC = () => {
 
                   {showPaymentOption && !isFreeTicket && (
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px", width: "100%" }}>
-                      <Select
-                        name="informPayment"
-                        label="¿DESEAS INFORMAR UN PAGO AHORA?"
-                        value={formData.informPayment}
-                        onChange={handleChange}
-                        disabled={submitting}
-                      >
-                        <option value="no">No, después</option>
-                        <option value="si">Sí, informar transferencia</option>
-                      </Select>
-                      <p style={{ fontSize: "12.5px", color: "#ffd0d0", margin: "4px 0 0 0", textAlign: "left", lineHeight: "1.4", borderLeft: "2px solid #ff716c", paddingLeft: "8px" }}>
-                        ⚠️ <strong>Importante:</strong> Después del 30 de Octubre el pago se realiza en una sola cuota (pago total) y la tarjeta tiene un recargo de $10.000 para todas las categorías.
+                      <p style={{ fontSize: "12.5px", color: "#ffd0d0", margin: "0", textAlign: "left", lineHeight: "1.4", borderLeft: "2px solid #ff716c", paddingLeft: "8px" }}>
+                        ⚠️ <strong>Importante:</strong> Para confirmar tu asistencia debes informar la transferencia de la primera cuota o el pago total. Después del 30 de Octubre el pago se realiza en una sola cuota (pago total) y la tarjeta tiene un recargo de $10.000 para todas las categorías.
                       </p>
                       {new Date(pricingConfig.serverTime) < new Date("2026-08-01T00:00:00-03:00") && (
                         <p style={{ fontSize: "12px", color: "var(--color-primary)", margin: "4px 0 0 0", textAlign: "left" }}>
@@ -369,7 +357,7 @@ export const AttendanceSection: React.FC = () => {
                   )}
                 </div>
 
-                {formData.informPayment === "si" && !isFreeTicket && (
+                {!isFreeTicket && (
                   <div className={styles["attendance-section__payment-box"]}>
                     <div className={styles["attendance-section__bank-info"]}>
                       <div className={styles["attendance-section__bank-title"]}>
