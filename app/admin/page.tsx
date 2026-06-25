@@ -474,7 +474,7 @@ export default function AdminDashboard() {
           <Card className={styles["table-card"]}>
             <div className={styles["table-title-row"]}>
               <h2 className={styles["table-title"]}>Lista de Invitados & Cuotas</h2>
-              <span style={{ fontSize: "12px", color: "var(--color-on-surface-variant)" }}>
+              <span className={styles["table-description"]}>
                 Haz clic en el icono 👁️ para verificar los comprobantes pendientes.
               </span>
             </div>
