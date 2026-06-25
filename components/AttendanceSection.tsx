@@ -195,6 +195,17 @@ export const AttendanceSection: React.FC = () => {
         });
 
         if (paymentError) throw paymentError;
+
+        // Trigger push notification to admin in background
+        fetch("/api/notify-payment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            guestName: formData.fullName,
+            amount: amount,
+            installmentNumber: formData.installmentNumber,
+          }),
+        }).catch((err) => console.error("Error triggering push notification:", err));
       }
 
       // Success!

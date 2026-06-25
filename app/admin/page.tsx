@@ -51,6 +51,88 @@ export default function AdminDashboard() {
     }
   }, []);
 
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [subscribing, setSubscribing] = useState(false);
+
+  // Check if already subscribed on load / auth success
+  useEffect(() => {
+    if (isAuthenticated) {
+      checkNotificationSubscription();
+    }
+  }, [isAuthenticated]);
+
+  const checkNotificationSubscription = async () => {
+    if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+      return;
+    }
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const existingSubscription = await registration.pushManager.getSubscription();
+      setNotificationsEnabled(!!existingSubscription);
+    } catch (err) {
+      console.error("Error checking push subscription:", err);
+    }
+  };
+
+  const urlBase64ToUint8Array = (base64String: string) => {
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  };
+
+  const handleSubscribeNotifications = async () => {
+    if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+      alert("Tu navegador no soporta notificaciones push.");
+      return;
+    }
+
+    try {
+      setSubscribing(true);
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        alert("Permiso de notificaciones denegado. Habilita las notificaciones en la configuración de tu navegador.");
+        return;
+      }
+
+      const registration = await navigator.serviceWorker.ready;
+      const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      if (!publicVapidKey) {
+        alert("Error: Faltan las claves de notificaciones en el servidor.");
+        return;
+      }
+
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
+      });
+
+      // Save subscription in Supabase push_subscriptions table
+      const { error } = await supabase
+        .from("push_subscriptions")
+        .insert({ subscription });
+
+      if (error) {
+        // If it already exists (Unique constraint), that's fine
+        if (!error.message.toLowerCase().includes("unique")) {
+          throw error;
+        }
+      }
+
+      setNotificationsEnabled(true);
+      alert("¡Notificaciones activadas con éxito! Recibirás avisos cuando los invitados paguen.");
+    } catch (err: any) {
+      console.error("Error subscribing to push notifications:", err);
+      alert(`Error al activar notificaciones: ${err.message || err}`);
+    } finally {
+      setSubscribing(false);
+    }
+  };
+
   // Fetch data
   const fetchData = async () => {
     setRefreshing(true);
@@ -350,6 +432,15 @@ export default function AdminDashboard() {
           </p>
         </div>
         <div className={styles["header-actions"]}>
+          {notificationsEnabled ? (
+            <Button type="button" variant="silver" className={styles["header-button"]} disabled style={{ opacity: 0.7 }}>
+              Notificaciones Activas ✅
+            </Button>
+          ) : (
+            <Button type="button" variant="silver" className={styles["header-button"]} onClick={handleSubscribeNotifications} disabled={subscribing}>
+              {subscribing ? "Activando..." : "Activar Notificaciones 🔔"}
+            </Button>
+          )}
           <Button type="button" variant="silver" className={styles["header-button"]} onClick={fetchData} disabled={refreshing}>
             {refreshing ? "Actualizando..." : "Actualizar"}
           </Button>

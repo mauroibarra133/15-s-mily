@@ -187,6 +187,17 @@ export const PaymentPortal: React.FC = () => {
 
       if (paymentError) throw paymentError;
 
+      // Trigger push notification to admin in background
+      fetch("/api/notify-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          guestName: selectedGuest.full_name,
+          amount: computedPayAmount,
+          installmentNumber: paymentType,
+        }),
+      }).catch((err) => console.error("Error triggering push notification:", err));
+
       setSubmitStatus({
         type: "success",
         text: "¡Comprobante subido con éxito! Se encuentra bajo revisión por el administrador.",

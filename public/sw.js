@@ -111,3 +111,51 @@ self.addEventListener("fetch", (event) => {
     );
   }
 });
+
+// Push event listener: receive push notification payloads
+self.addEventListener("push", (event) => {
+  let data = {};
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data = { title: "Nuevo Pago", body: event.data.text() };
+    }
+  }
+
+  const options = {
+    body: data.body || "Se ha recibido un nuevo comprobante.",
+    icon: "/pwa-icon.png",
+    badge: "/pwa-icon.png",
+    vibrate: [100, 50, 100],
+    data: {
+      url: "/admin",
+    },
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || "Notificación de Pago", options)
+  );
+});
+
+// Notification click event listener: open admin panel
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  event.waitUntil(
+    self.clients.matchAll({ type: "window" }).then((clientList) => {
+      // If an admin window is already open, focus it
+      for (const client of clientList) {
+        const url = new URL(client.url);
+        if (url.pathname === "/admin" && "focus" in client) {
+          return client.focus();
+        }
+      }
+      // Otherwise, open a new window
+      if (self.clients.openWindow) {
+        return self.clients.openWindow("/admin");
+      }
+    })
+  );
+});
+
