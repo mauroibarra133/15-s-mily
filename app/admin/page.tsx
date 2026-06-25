@@ -345,16 +345,16 @@ export default function AdminDashboard() {
           <h1 className={`${styles["dashboard-title"]} ornate-headline silver-gradient-text`}>
             Panel de Control
           </h1>
-          <p style={{ color: "var(--color-on-surface-variant)", margin: "4px 0 0 0" }}>
+          <p className={styles["dashboard-subtitle"]}>
             Resumen de confirmaciones de asistencia y pagos
           </p>
         </div>
-        <div style={{ display: "flex", gap: "12px" }}>
-          <Button type="button" variant="silver" onClick={fetchData} disabled={refreshing}>
-            {refreshing ? "Actualizando..." : "Actualizar 🔄"}
+        <div className={styles["header-actions"]}>
+          <Button type="button" variant="silver" className={styles["header-button"]} onClick={fetchData} disabled={refreshing}>
+            {refreshing ? "Actualizando..." : "Actualizar"}
           </Button>
-          <Button type="button" variant="silver" onClick={handleLogout}>
-            Salir 🚪
+          <Button type="button" variant="silver" className={styles["header-button"]} onClick={handleLogout}>
+            Salir
           </Button>
         </div>
       </div>
