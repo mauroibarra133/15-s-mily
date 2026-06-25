@@ -1,3 +1,23 @@
+/* ============================================================
+   AttendanceSection — paleta de superficies con jerarquía clara
+   Base navy oscura para la card (se separa del fondo violeta),
+   acentos por tipo de bloque: azul (info), rojo (alerta),
+   cian (monto), verde/rojo (mensajes).
+   ============================================================ */
+
+:root {
+  --att-card-bg: #161d33;          /* panel navy de la card */
+  --att-field-bg: #0f1526;         /* superficie hundida (inputs, archivo) */
+  --att-elevated-bg: #1d2640;      /* caja de pago, un paso por encima */
+  --att-border: rgba(160, 174, 214, 0.18);
+  --att-border-strong: rgba(160, 174, 214, 0.32);
+  --att-text: #eaeefb;
+  --att-text-muted: #9aa6c7;
+  --att-primary: #84adff;          /* azul acento */
+  --att-tertiary: #59d8fd;         /* cian monto */
+  --att-warning: #ff8a85;          /* rojo alerta */
+}
+
 .attendance-section {
   padding-top: var(--spacing-section-gap);
   padding-bottom: var(--spacing-section-gap);
@@ -9,12 +29,12 @@
   background-color: var(--color-secondary);
   z-index: 10;
 }
-
 .attendance-section--visible {
   opacity: 1;
   transform: translateY(0);
 }
 
+/* La card ahora es un panel navy sólido: contrasta con el fondo violeta */
 .attendance-section__card {
   max-width: 42rem;
   margin-left: auto;
@@ -22,22 +42,24 @@
   position: relative;
   overflow: hidden;
   padding: 32px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  background-color: var(--att-card-bg);
+  border: 1px solid var(--att-border);
+  border-radius: var(--border-radius-xl);
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
+  color: var(--att-text);
 }
-
 .attendance-section__glow {
   position: absolute;
   top: -96px;
   right: -96px;
   width: 256px;
   height: 256px;
-  background-color: rgba(132, 173, 255, 0.1); /* primary/10 */
-  filter: blur(100px);
+  background-color: rgba(132, 173, 255, 0.12);
+  filter: blur(110px);
   border-radius: var(--border-radius-full);
   pointer-events: none;
   z-index: 0;
 }
-
 .attendance-section__content {
   position: relative;
   z-index: 10;
@@ -45,23 +67,50 @@
   flex-direction: column;
   gap: 32px;
 }
-
 .attendance-section__header {
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
-
 .attendance-section__title {
-  font-size: 32px; /* headline-md */
+  font-size: 32px;
   line-height: 40px;
   font-weight: 600;
 }
-
 .attendance-section__subtitle {
-  font-size: 16px; /* body-md */
-  color: var(--color-on-surface-variant);
+  font-size: 16px;
+  color: var(--att-text-muted);
+}
+
+/* Banner del portal de pagos: acento azul, claramente clickeable */
+.attendance-section__portal {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(132, 173, 255, 0.1);
+  border: 1px solid rgba(132, 173, 255, 0.28);
+  padding: 16px;
+  border-radius: var(--border-radius-lg);
+  margin-top: -8px;
+}
+.attendance-section__portal-text {
+  font-size: 14px;
+  color: var(--att-text-muted);
+  margin: 0;
+}
+.attendance-section__portal-link {
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+  color: var(--att-primary);
+  cursor: pointer;
+  display: inline-block;
+  transition: opacity 0.2s;
+}
+.attendance-section__portal-link:hover {
+  opacity: 0.8;
 }
 
 .attendance-section__form {
@@ -69,19 +118,188 @@
   flex-direction: column;
   gap: 24px;
 }
-
 .attendance-section__form-row {
   display: grid;
   grid-template-columns: 1fr;
   gap: 24px;
+}
+.attendance-section__col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Caja de advertencia: rojo, separada del resto */
+.attendance-section__warning {
+  background: rgba(255, 113, 108, 0.1);
+  border: 1px solid rgba(255, 113, 108, 0.3);
+  border-left: 4px solid var(--att-warning);
+  border-radius: var(--border-radius-default);
+  padding: 12px 14px;
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  text-align: left;
+  color: #ffd9d7;
+}
+.attendance-section__warning strong {
+  color: #fff;
+}
+
+/* Caja de info: azul suave, distinta de la advertencia */
+.attendance-section__info {
+  background: rgba(132, 173, 255, 0.1);
+  border: 1px solid rgba(132, 173, 255, 0.28);
+  border-radius: var(--border-radius-default);
+  padding: 10px 14px;
+  margin: 8px 0 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  text-align: left;
+  color: #cfe0ff;
+}
+
+/* Caja de pago: superficie elevada que agrupa transferencia + comprobante */
+.attendance-section__payment-box {
+  margin-top: 8px;
+  padding: 24px;
+  background: var(--att-elevated-bg);
+  border: 1px solid var(--att-border-strong);
+  border-radius: var(--border-radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Datos bancarios: panel con borde azul a la izquierda */
+.attendance-section__bank-info {
+  background: rgba(132, 173, 255, 0.08);
+  border: 1px solid rgba(132, 173, 255, 0.2);
+  border-left: 4px solid var(--att-primary);
+  padding: 16px;
+  border-radius: var(--border-radius-default);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--att-text);
+}
+.attendance-section__bank-title {
+  font-weight: 700;
+  color: var(--att-primary);
+  margin-bottom: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+.attendance-section__bank-details p {
+  margin: 4px 0;
+  text-align: left;
+  color: var(--att-text);
+}
+.attendance-section__bank-details strong {
+  color: var(--att-text-muted);
+  font-weight: 600;
+  margin-right: 4px;
+}
+.attendance-section__copy-btn {
+  background: rgba(132, 173, 255, 0.18);
+  border: 1px solid rgba(132, 173, 255, 0.4);
+  color: var(--att-primary);
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 8px;
+  transition: background 0.2s;
+}
+.attendance-section__copy-btn:hover {
+  background: rgba(132, 173, 255, 0.3);
+}
+
+/* Selector de archivo: superficie hundida con borde punteado */
+.attendance-section__file-input {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+.attendance-section__file-input-wrapper {
+  background: var(--att-field-bg);
+  border: 1.5px dashed var(--att-border-strong);
+  padding: 20px;
+  border-radius: var(--border-radius-lg);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.25s, color 0.25s, background 0.25s;
+  color: var(--att-text-muted);
+  font-size: 14px;
+}
+.attendance-section__file-input-wrapper:hover {
+  border-color: var(--att-primary);
+  color: var(--att-text);
+  background: #121a2e;
+}
+.attendance-section__file-input-wrapper--filled {
+  border-style: solid;
+  border-color: rgba(89, 216, 253, 0.5);
+  color: var(--att-text);
+}
+.attendance-section__file-label {
+  font-family: var(--font-inter), Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--att-text-muted);
+}
+
+/* Monto: badge cian destacado, el dato más importante de la sección */
+.attendance-section__amount-badge {
+  font-size: 18px;
+  font-weight: 700;
+  color: #08222b;
+  background: var(--att-tertiary);
+  padding: 14px 16px;
+  border-radius: var(--border-radius-default);
+  text-align: center;
+  box-shadow: 0 6px 18px -6px rgba(89, 216, 253, 0.5);
+}
+
+.attendance-section__warning-strong {
+  font-size: 12.5px;
+  color: var(--att-warning);
+  margin: 8px 0 0 0;
+  text-align: left;
+  font-weight: 600;
+}
+
+/* Mensajes de resultado */
+.attendance-section__message {
+  padding: 16px;
+  border-radius: var(--border-radius-lg);
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+}
+.attendance-section__message--success {
+  background: rgba(46, 204, 113, 0.15);
+  border: 1px solid rgba(46, 204, 113, 0.4);
+  color: #57e08e;
+}
+.attendance-section__message--error {
+  background: rgba(231, 76, 60, 0.15);
+  border: 1px solid rgba(231, 76, 60, 0.4);
+  color: #ff8a7e;
 }
 
 .attendance-section__submit-btn {
   width: 100%;
   padding: 16px;
   border-radius: var(--border-radius-xl);
-  font-size: 12px; /* label-caps */
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
   letter-spacing: 0.2em;
 }
 
@@ -90,112 +308,10 @@
     padding-left: var(--spacing-container-padding-desktop);
     padding-right: var(--spacing-container-padding-desktop);
   }
-
   .attendance-section__card {
     padding: 48px;
   }
-
   .attendance-section__form-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-}
-
-.attendance-section__payment-box {
-  margin-top: 16px;
-  padding: 24px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(192, 198, 219, 0.15);
-  border-radius: var(--border-radius-lg);
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.attendance-section__bank-info {
-  background: rgba(132, 173, 255, 0.05);
-  border-left: 4px solid var(--color-primary);
-  padding: 16px;
-  border-radius: var(--border-radius-default);
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--color-on-surface);
-}
-
-.attendance-section__bank-title {
-  font-weight: 600;
-  color: var(--color-primary);
-  margin-bottom: 8px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  font-size: 12px;
-}
-
-.attendance-section__bank-details p {
-  margin: 4px 0;
-  text-align: left;
-}
-
-.attendance-section__file-input {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  text-align: left;
-}
-
-.attendance-section__file-input-wrapper {
-  background: rgba(11, 18, 33, 0.3);
-  border: 1px dashed var(--color-outline);
-  padding: 20px;
-  border-radius: var(--border-radius-lg);
-  text-align: center;
-  cursor: pointer;
-  transition: border-color 0.3s;
-  color: var(--color-on-surface-variant);
-  font-size: 14px;
-}
-
-.attendance-section__file-input-wrapper:hover {
-  border-color: var(--color-primary);
-  color: var(--color-on-surface);
-}
-
-.attendance-section__file-label {
-  font-family: var(--font-inter), Arial, sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 16px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--color-on-surface-variant);
-  margin-bottom: 8px;
-}
-
-.attendance-section__amount-badge {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--color-tertiary);
-  background: rgba(89, 216, 253, 0.1);
-  padding: 12px 16px;
-  border-radius: var(--border-radius-default);
-  text-align: center;
-}
-
-.attendance-section__message {
-  padding: 16px;
-  border-radius: var(--border-radius-lg);
-  font-size: 14px;
-  line-height: 1.5;
-  text-align: center;
-}
-
-.attendance-section__message--success {
-  background: rgba(46, 204, 113, 0.15);
-  border: 1px solid rgba(46, 204, 113, 0.3);
-  color: #2ecc71;
-}
-
-.attendance-section__message--error {
-  background: rgba(231, 76, 60, 0.15);
-  border: 1px solid rgba(231, 76, 60, 0.3);
-  color: #e74c3c;
 }

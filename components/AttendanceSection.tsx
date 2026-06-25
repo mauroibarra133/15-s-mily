@@ -265,22 +265,11 @@ export const AttendanceSection: React.FC = () => {
             </p>
           </div>
 
-          <div style={{ textAlign: "center", display: "flex", flexDirection: "column", gap: "6px", background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(192, 198, 219, 0.1)", padding: "16px", borderRadius: "var(--border-radius-lg)", marginTop: "-8px" }}>
-            <p style={{ fontSize: "14px", color: "var(--color-on-surface-variant)", margin: 0 }}>
+          <div className={styles["attendance-section__portal"]}>
+            <p className={styles["attendance-section__portal-text"]}>
               ¿Ya confirmaste asistencia y deseas informar un pago o consultar tus cuotas?
             </p>
-            <a
-              href="/pagar"
-              style={{
-                fontSize: "14px",
-                fontWeight: "600",
-                textDecoration: "underline",
-                color: "var(--color-primary)",
-                transition: "color 0.2s",
-                display: "inline-block",
-                cursor: "pointer"
-              }}
-            >
+            <a href="/pagar" className={styles["attendance-section__portal-link"]}>
               Ir al Portal de Pagos 💳
             </a>
           </div>
@@ -344,15 +333,10 @@ export const AttendanceSection: React.FC = () => {
                   </Select>
 
                   {showPaymentOption && !isFreeTicket && (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "8px", width: "100%" }}>
-                      <p style={{ fontSize: "12.5px", color: "#ffd0d0", margin: "0", textAlign: "left", lineHeight: "1.4", borderLeft: "2px solid #ff716c", paddingLeft: "8px" }}>
+                    <div className={styles["attendance-section__col"]}>
+                      <p className={styles["attendance-section__warning"]}>
                         ⚠️ <strong>Importante:</strong> Para confirmar tu asistencia debes informar la transferencia de la primera cuota o el pago total. Después del 30 de Octubre el pago se realiza en una sola cuota (pago total) y la tarjeta tiene un recargo de $10.000 para todas las categorías.
                       </p>
-                      {new Date(pricingConfig.serverTime) < new Date("2026-08-01T00:00:00-03:00") && (
-                        <p style={{ fontSize: "12px", color: "var(--color-primary)", margin: "4px 0 0 0", textAlign: "left" }}>
-                          ℹ️ La Cuota 1 y el Pago Total ya se encuentran habilitados. Las cuotas 2, 3 y 4 se activarán mensualmente a partir de Septiembre de 2026.
-                        </p>
-                      )}
                     </div>
                   )}
                 </div>
@@ -378,17 +362,7 @@ export const AttendanceSection: React.FC = () => {
                           <button
                             type="button"
                             onClick={handleCopyAlias}
-                            style={{
-                              background: "rgba(132, 173, 255, 0.15)",
-                              border: "1px solid rgba(132, 173, 255, 0.3)",
-                              color: "var(--color-primary)",
-                              borderRadius: "4px",
-                              padding: "2px 8px",
-                              fontSize: "11px",
-                              cursor: "pointer",
-                              marginLeft: "8px",
-                              transition: "background 0.2s",
-                            }}
+                            className={styles["attendance-section__copy-btn"]}
                           >
                             {copiedAlias ? "¡Copiado!" : "Copiar"}
                           </button>
@@ -438,7 +412,9 @@ export const AttendanceSection: React.FC = () => {
                           COMPROBANTE (FOTO / PDF)
                         </span>
                         <div
-                          className={styles["attendance-section__file-input-wrapper"]}
+                          className={`${styles["attendance-section__file-input-wrapper"]} ${
+                            receiptFile ? styles["attendance-section__file-input-wrapper--filled"] : ""
+                          }`}
                           onClick={() => !submitting && fileInputRef.current?.click()}
                         >
                           {receiptFile ? receiptFile.name : "Seleccionar Archivo..."}
@@ -455,7 +431,7 @@ export const AttendanceSection: React.FC = () => {
                     </div>
 
                     {!pricingConfig.allowInstallments && (
-                      <p style={{ fontSize: "12.5px", color: "#ff716c", margin: "8px 0 0 0", textAlign: "left", fontWeight: "600" }}>
+                      <p className={styles["attendance-section__warning-strong"]}>
                         * El pago en cuotas ya no está disponible. Después del 30 de Octubre solo se permite abonar en un único pago total con recargo.
                       </p>
                     )}
