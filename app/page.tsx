@@ -10,6 +10,8 @@ import PhotosSections from "@/components/PhotosSections";
 import AttendanceSection from "@/components/AttendanceSection";
 import Footer from "@/components/Footer";
 import MusicSection from "@/components/MusicSection";
+import { Play, Pause } from "lucide-react";
+import styles from "./page.module.css";
 
 import { logEvent } from "@/lib/analytics";
 
@@ -30,6 +32,18 @@ export default function Home() {
   useEffect(() => {
     logEvent("page_view_home");
   }, []);
+
+  const toggleAudio = () => {
+    if (!audio) return;
+    if (isAudioPlaying) {
+      audio.pause();
+      setIsAudioPlaying(false);
+    } else {
+      audio.play()
+        .then(() => setIsAudioPlaying(true))
+        .catch((error) => console.log("Reproducción bloqueada:", error));
+    }
+  };
 
   // Check URL parameters to skip the envelope (e.g. when returning from pagar)
   useEffect(() => {
@@ -81,6 +95,21 @@ export default function Home() {
         </main>
         <Footer />
       </div>
+
+      {showInvitation && (
+        <button
+          className={`${styles["music-toggle"]} ${!isAudioPlaying ? styles["paused"] : ""}`}
+          onClick={toggleAudio}
+          aria-label={isAudioPlaying ? "Pausar música" : "Reproducir música"}
+          title={isAudioPlaying ? "Pausar música" : "Reproducir música"}
+        >
+          {isAudioPlaying ? (
+            <Pause size={18} fill="currentColor" />
+          ) : (
+            <Play size={18} style={{ marginLeft: "2px" }} fill="currentColor" />
+          )}
+        </button>
+      )}
     </>
   );
 }

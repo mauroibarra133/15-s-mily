@@ -138,3 +138,53 @@ a.secondary {
   }
 }
 
+.music-toggle {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(0, 16, 22, 0.55);
+  border: 1px solid rgba(132, 173, 255, 0.25);
+  color: #84adff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 9999;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  padding: 0;
+  outline: none;
+}
+
+.music-toggle:hover {
+  background: rgba(0, 16, 22, 0.8);
+  border-color: rgba(132, 173, 255, 0.5);
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(132, 173, 255, 0.25);
+}
+
+.music-toggle:active {
+  transform: scale(0.95);
+}
+
+.music-toggle.paused {
+  animation: pulse-border 2s infinite;
+}
+
+@keyframes pulse-border {
+  0% {
+    box-shadow: 0 0 0 0 rgba(132, 173, 255, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(132, 173, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(132, 173, 255, 0);
+  }
+}
+
