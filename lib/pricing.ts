@@ -40,8 +40,8 @@ export async function getCurrentPricingConfig(): Promise<PricingConfig> {
   // Reconstruct Argentina Time representation in local Date
   const argentinaTime = new Date(arYear, arMonth - 1, arDay, arHour, arMinute, arSecond);
 
-  // Deadline is November 10th, 2026 at 23:59:59
-  const deadline = new Date(2026, 10, 10, 23, 59, 59); // Month is 0-indexed (10 = November)
+  // Deadline is October 30th, 2026 at 23:59:59 (America/Argentina/Buenos_Aires)
+  const deadline = new Date(2026, 9, 30, 23, 59, 59); // Month is 0-indexed (9 = October)
 
   const isEarly = argentinaTime.getTime() <= deadline.getTime();
 
@@ -63,8 +63,8 @@ export async function getCurrentPricingConfig(): Promise<PricingConfig> {
       };
 
   // Installment configuration:
-  // Allow installments permanently so guests can advance or prepay installments at any time of the year.
-  const allowInstallments = true;
+  // Allow installments up to October 30th (isEarly)
+  const allowInstallments = isEarly;
   let installmentWindow: number | null = null;
 
   if (arYear === 2026) {

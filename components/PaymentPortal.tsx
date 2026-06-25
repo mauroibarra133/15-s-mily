@@ -229,7 +229,7 @@ export const PaymentPortal: React.FC = () => {
       case "menor_0_2":
         return "Menor (0 a 2 años)";
       case "adolescente":
-        return "Adolescente";
+        return "Adolescente (12 a 17 años)";
       case "trasnoche":
         return "Trasnoche";
       default:
@@ -533,6 +533,10 @@ export const PaymentPortal: React.FC = () => {
                         </div>
                       </div>
 
+                      <p style={{ fontSize: "12.5px", color: "#ffd0d0", margin: "6px 0 12px 0", textAlign: "left", lineHeight: "1.4", borderLeft: "2px solid #ff716c", paddingLeft: "8px" }}>
+                        ⚠️ <strong>Importante:</strong> Después del 30 de Octubre el pago se realiza en una sola cuota (pago total) y la tarjeta tiene un recargo de $10.000 para todas las categorías.
+                      </p>
+
                       {paymentOptions.length > 0 ? (
                         <>
                           <div className={attendanceStyles["attendance-section__form-row"]}>
@@ -576,8 +580,8 @@ export const PaymentPortal: React.FC = () => {
                           </div>
 
                           {pricingConfig && !pricingConfig.allowInstallments && (
-                            <p style={{ fontSize: "12px", color: "var(--color-outline)", margin: 0 }}>
-                              * Las cuotas solo se habilitan del 1 al 10 de Agosto, Septiembre, Octubre y Noviembre de 2026. Actualmente solo se permite saldar el saldo restante total.
+                            <p style={{ fontSize: "12.5px", color: "#ff716c", margin: 0, fontWeight: "600" }}>
+                              * El pago en cuotas ya no está disponible después del 30 de Octubre. Actualmente solo se permite saldar el saldo restante total con el recargo correspondiente.
                             </p>
                           )}
 

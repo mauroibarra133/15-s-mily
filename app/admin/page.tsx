@@ -206,7 +206,7 @@ export default function AdminDashboard() {
 
   // Helper to calculate price
   const getTicketPrice = (type: string, createdAt: string) => {
-    const deadlineUTC = new Date("2026-11-11T02:59:59Z"); // Argentina 2026-11-10T23:59:59-03:00
+    const deadlineUTC = new Date("2026-10-31T02:59:59Z"); // Argentina 2026-10-30T23:59:59-03:00
     const isEarly = new Date(createdAt).getTime() <= deadlineUTC.getTime();
 
     const prices: Record<string, Record<string, number>> = {
@@ -238,7 +238,7 @@ export default function AdminDashboard() {
       case "menor_0_2":
         return "Menor (0-2)";
       case "adolescente":
-        return "Adolescente";
+        return "Adolescente (12 a 17 años)";
       case "trasnoche":
         return "Trasnoche";
       default:

@@ -334,7 +334,7 @@ export const AttendanceSection: React.FC = () => {
                       Adulto (${pricingConfig.prices.adulto.toLocaleString("es-AR")})
                     </option>
                     <option value="adolescente">
-                      Adolescente (${pricingConfig.prices.adolescente.toLocaleString("es-AR")})
+                      Adolescente (12 a 17 años) (${pricingConfig.prices.adolescente.toLocaleString("es-AR")})
                     </option>
                     <option value="menor_3_11">
                       Menor 3-11 años (${pricingConfig.prices.menor_3_11.toLocaleString("es-AR")})
@@ -357,6 +357,9 @@ export const AttendanceSection: React.FC = () => {
                         <option value="no">No, después</option>
                         <option value="si">Sí, informar transferencia</option>
                       </Select>
+                      <p style={{ fontSize: "12.5px", color: "#ffd0d0", margin: "4px 0 0 0", textAlign: "left", lineHeight: "1.4", borderLeft: "2px solid #ff716c", paddingLeft: "8px" }}>
+                        ⚠️ <strong>Importante:</strong> Después del 30 de Octubre el pago se realiza en una sola cuota (pago total) y la tarjeta tiene un recargo de $10.000 para todas las categorías.
+                      </p>
                       {new Date(pricingConfig.serverTime) < new Date("2026-08-01T00:00:00-03:00") && (
                         <p style={{ fontSize: "12px", color: "var(--color-primary)", margin: "4px 0 0 0", textAlign: "left" }}>
                           ℹ️ La Cuota 1 y el Pago Total ya se encuentran habilitados. Las cuotas 2, 3 y 4 se activarán mensualmente a partir de Septiembre de 2026.
@@ -464,8 +467,8 @@ export const AttendanceSection: React.FC = () => {
                     </div>
 
                     {!pricingConfig.allowInstallments && (
-                      <p style={{ fontSize: "12px", color: "var(--color-outline)", margin: 0, textAlign: "left" }}>
-                        * Las cuotas solo se habilitan del 1 al 10 de Agosto, Septiembre, Octubre y Noviembre de 2026.
+                      <p style={{ fontSize: "12.5px", color: "#ff716c", margin: "8px 0 0 0", textAlign: "left", fontWeight: "600" }}>
+                        * El pago en cuotas ya no está disponible. Después del 30 de Octubre solo se permite abonar en un único pago total con recargo.
                       </p>
                     )}
 

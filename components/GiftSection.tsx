@@ -72,7 +72,7 @@ export const GiftSection: React.FC = () => {
             Regalos y Deseos
           </h2>
           <p className={styles["gift-section__subtitle"]}>
-            Su presencia es mi mayor regalo. Sin embargo, si desea honrarme con un obsequio, cualquier contribución será muy apreciada.
+            Tu presencia es mi mayor regalo. Sin embargo, si deseas honrarme con un obsequio, cualquier contribución será muy apreciada.
           </p>
         </div>
 
