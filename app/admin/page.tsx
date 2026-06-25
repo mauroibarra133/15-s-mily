@@ -433,11 +433,11 @@ export default function AdminDashboard() {
         </div>
         <div className={styles["header-actions"]}>
           {notificationsEnabled ? (
-            <Button type="button" variant="silver" className={styles["header-button"]} disabled style={{ opacity: 0.7 }}>
+            <Button type="button" variant="silver" className={`${styles["header-button"]} ${styles["notification-button"]}`} disabled style={{ opacity: 0.7 }}>
               Notificaciones Activas ✅
             </Button>
           ) : (
-            <Button type="button" variant="silver" className={styles["header-button"]} onClick={handleSubscribeNotifications} disabled={subscribing}>
+            <Button type="button" variant="silver" className={`${styles["header-button"]} ${styles["notification-button"]}`} onClick={handleSubscribeNotifications} disabled={subscribing}>
               {subscribing ? "Activando..." : "Activar Notificaciones 🔔"}
             </Button>
           )}
