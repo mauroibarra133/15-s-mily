@@ -1,7 +1,7 @@
 .dress-code {
   padding-top: var(--spacing-section-gap);
   padding-bottom: var(--spacing-section-gap);
-  background-color: rgba(108, 159, 255, 0.05); /* primary-container/30 (~5% opacity) */
+  background: linear-gradient(135deg, #000a1f 0%, #00173d 50%, #000a1f 100%);
   opacity: 0;
   transform: translateY(40px);
   transition: opacity 1s ease, transform 1s ease;

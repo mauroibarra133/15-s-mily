@@ -6,7 +6,7 @@
   opacity: 0;
   transform: translateY(40px);
   transition: opacity 1s ease, transform 1s ease;
-  background-color: rgba(0, 4, 19, 0.925);
+  background: radial-gradient(circle at center, #00122e 0%, #000413 100%);
   min-height: 100vh;
   
   /* Centrado global de la sección en la pantalla */

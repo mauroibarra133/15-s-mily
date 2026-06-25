@@ -8,7 +8,7 @@
   padding: 80px 20px;
   position: relative; /* Clave para que la aurora no se escape de la sección */
   overflow: hidden;   /* Evita scrolls raros si la aurora se agranda por el scale */
-  background-color: #030a16; /* Color de respaldo */
+  background: radial-gradient(circle at center, #001f4d 0%, #030a16 100%);
 }
 
 /* Tarjeta principal con el borde redondeado sutil y fondo oscuro */
