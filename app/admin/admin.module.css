@@ -400,3 +400,65 @@
 .btn-reject:active {
   transform: scale(0.98);
 }
+
+/* Collapsible Metrics Styles */
+.metrics-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 18px 24px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(192, 198, 219, 0.15);
+  border-radius: var(--border-radius-xl);
+  color: var(--color-on-background);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: 32px;
+  text-align: left;
+}
+
+.metrics-toggle:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(192, 198, 219, 0.3);
+  box-shadow: 0 0 20px rgba(132, 173, 255, 0.08);
+}
+
+.metrics-toggle:active {
+  transform: scale(0.99);
+}
+
+.metrics-toggle-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.metrics-toggle-icon {
+  font-size: 16px;
+  color: var(--color-tertiary);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.metrics-toggle-icon--active {
+  transform: rotate(180deg);
+}
+
+.metrics-content {
+  margin-top: 16px;
+  animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+

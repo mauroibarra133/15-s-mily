@@ -134,7 +134,7 @@ export const AttendanceSection: React.FC = () => {
       const finalGuestData = {
         full_name: formData.fullName.trim(),
         attendance: formData.attendance,
-        dietary: formData.dietary || "",
+        dietary: formData.dietary.trim() || "Ninguno",
         ticket_type: isAttending ? formData.ticketType : "adulto", // default required by db constraint
       };
 
