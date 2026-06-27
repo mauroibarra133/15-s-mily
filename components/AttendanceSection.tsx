@@ -149,7 +149,7 @@ export const AttendanceSection: React.FC = () => {
         if (guestError.code === "23505") {
           setSubmitStatus({
             type: "error",
-            text: "Este nombre ya se encuentra registrado. Si deseas informar un pago adicional, por favor ve al Portal de Pagos.",
+            text: "Este nombre ya está registrado. Si querés informar un pago adicional, por favor andá al Portal de Pagos.",
             isDuplicate: true,
           });
           setSubmitting(false);
@@ -261,13 +261,13 @@ export const AttendanceSection: React.FC = () => {
               Confirmar Asistencia
             </h2>
             <p className={styles["attendance-section__subtitle"]}>
-              Por favor, dinos si puedes asistir antes del 30 de octubre.
+              Por favor, decime si podes asistir antes del 30 de octubre.
             </p>
           </div>
 
           <div className={styles["attendance-section__portal"]}>
             <p className={styles["attendance-section__portal-text"]}>
-              ¿Ya confirmaste asistencia y deseas informar un pago o consultar tus cuotas?
+              ¿Ya confirmaste tu presencia y querés informar un pago o consultar tus cuotas?
             </p>
             <a href="/pagar" className={styles["attendance-section__portal-link"]}>
               Ir al Portal de Pagos 💳
@@ -335,7 +335,7 @@ export const AttendanceSection: React.FC = () => {
                   {showPaymentOption && !isFreeTicket && (
                     <div className={styles["attendance-section__col"]}>
                       <p className={styles["attendance-section__warning"]}>
-                        ⚠️ <strong>Importante:</strong> Para confirmar tu asistencia debes informar la transferencia de la primera cuota o el pago total. Después del 30 de Octubre el pago se realiza en una sola cuota (pago total) y la tarjeta tiene un recargo de $10.000 para todas las categorías.
+                        ⚠️ <strong>Importante:</strong> Para confirmar tu presencia debés informar la transferencia de la primera cuota o el pago total. Después del 30 de Octubre el pago se realiza en una sola cuota (pago total) y la tarjeta tiene un recargo de $10.000 para todas las categorías.
                       </p>
                     </div>
                   )}
