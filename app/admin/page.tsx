@@ -216,14 +216,12 @@ export default function AdminDashboard() {
         menor_3_11: 40000,
         menor_0_2: 0,
         adolescente: 55000,
-        trasnoche: 35000,
       },
       late: {
         adulto: 90000,
         menor_3_11: 50000,
         menor_0_2: 0,
         adolescente: 65000,
-        trasnoche: 45000,
       },
     };
 

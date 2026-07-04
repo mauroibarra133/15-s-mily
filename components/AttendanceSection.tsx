@@ -318,16 +318,19 @@ export const AttendanceSection: React.FC = () => {
                     disabled={submitting}
                   >
                     <option value="adulto">
-                      Adulto (${pricingConfig.prices.adulto.toLocaleString("es-AR")})
+                      Adulto (${pricingConfig.prices.adulto.toLocaleString("es-AR")}
+                      {pricingConfig.allowInstallments ? ` o 4 cuotas de $${pricingConfig.installmentPrices.adulto.toLocaleString("es-AR")}` : ""}
+                      )
                     </option>
                     <option value="adolescente">
-                      Adolescente (12 a 17 años) (${pricingConfig.prices.adolescente.toLocaleString("es-AR")})
+                      Adolescente (12 a 17 años) (${pricingConfig.prices.adolescente.toLocaleString("es-AR")}
+                      {pricingConfig.allowInstallments ? ` o 4 cuotas de $${pricingConfig.installmentPrices.adolescente.toLocaleString("es-AR")}` : ""}
+                      )
                     </option>
                     <option value="menor_3_11">
-                      Menor 3-11 años (${pricingConfig.prices.menor_3_11.toLocaleString("es-AR")})
-                    </option>
-                    <option value="trasnoche">
-                      Trasnoche (${pricingConfig.prices.trasnoche.toLocaleString("es-AR")})
+                      Menor 3-11 años (${pricingConfig.prices.menor_3_11.toLocaleString("es-AR")}
+                      {pricingConfig.allowInstallments ? ` o 4 cuotas de $${pricingConfig.installmentPrices.menor_3_11.toLocaleString("es-AR")}` : ""}
+                      )
                     </option>
                     <option value="menor_0_2">Menor 0-2 años ($0)</option>
                   </Select>

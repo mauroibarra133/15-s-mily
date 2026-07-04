@@ -52,14 +52,12 @@ export async function getCurrentPricingConfig(): Promise<PricingConfig> {
         menor_3_11: 40000,
         menor_0_2: 0,
         adolescente: 55000,
-        trasnoche: 35000,
       }
     : {
         adulto: 90000,
         menor_3_11: 50000,
         menor_0_2: 0,
         adolescente: 65000,
-        trasnoche: 45000,
       };
 
   // Installment configuration:
