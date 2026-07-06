@@ -122,7 +122,7 @@ export const GiftSection: React.FC = () => {
         </div>
         <div className={styles["detail-row"]}>
           <p className={styles["gift-box__content-detail-label"]}>Titular:</p>
-          <p className={styles["gift-box__content-owner"]}>Milagros Ibarra</p>
+          <p className={styles["gift-box__content-owner"]}>Milagros Ailén Ibarra</p>
         </div>
       </div>
 
