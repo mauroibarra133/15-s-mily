@@ -266,3 +266,36 @@
     transform: scale(1);
   }
 }
+
+/* BOTÓN DE SPOTIFY COLABORATIVO */
+.spotifyButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 480px;
+  padding: 14px 28px;
+  border: none;
+  border-radius: 30px;
+  background: #1DB954; /* Color verde oficial de Spotify */
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(29, 185, 84, 0.25);
+  transition: all 0.25s ease;
+  margin-top: 10px;
+}
+
+.spotifyButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(29, 185, 84, 0.4);
+  background: #1ed760; /* Verde más brillante en hover */
+}
+
+.spotifyButton:active {
+  transform: translateY(0);
+}
