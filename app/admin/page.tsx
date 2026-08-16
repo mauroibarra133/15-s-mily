@@ -39,6 +39,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showMetrics, setShowMetrics] = useState(false);
+  const [filter, setFilter] = useState<"all" | "yes" | "no">("all");
 
   // Modal Review state
   const [selectedPayment, setSelectedPayment] = useState<(Payment & { guest_name: string }) | null>(null);
@@ -248,6 +249,12 @@ export default function AdminDashboard() {
   // Calculate Dashboard Metrics
   const confirmedGuests = guests.filter((g) => g.attendance === "Sí, asistiré");
   const totalConfirmedHeads = confirmedGuests.length;
+
+  const filteredGuests = guests.filter((g) => {
+    if (filter === "yes") return g.attendance === "Sí, asistiré";
+    if (filter === "no") return g.attendance === "No podré asistir";
+    return true; // "all"
+  });
 
   const totalProjectedRevenue = confirmedGuests.reduce((sum, g) => {
     return sum + getTicketPrice(g.ticket_type, g.created_at);
@@ -497,10 +504,35 @@ export default function AdminDashboard() {
           {/* Master Table Grid */}
           <Card className={styles["table-card"]}>
             <div className={styles["table-title-row"]}>
-              <h2 className={styles["table-title"]}>Lista de Invitados & Cuotas</h2>
-              <span className={styles["table-description"]}>
-                Haz clic en el icono 👁️ para verificar los comprobantes pendientes.
-              </span>
+              <div>
+                <h2 className={styles["table-title"]}>Lista de Invitados & Cuotas</h2>
+                <span className={styles["table-description"]}>
+                  Haz clic en el icono 👁️ para verificar los comprobantes pendientes.
+                </span>
+              </div>
+              <div className={styles["filter-group"]}>
+                <button
+                  type="button"
+                  className={`${styles["filter-btn"]} ${filter === "all" ? styles["filter-btn--active"] : ""}`}
+                  onClick={() => setFilter("all")}
+                >
+                  Todos ({guests.length})
+                </button>
+                <button
+                  type="button"
+                  className={`${styles["filter-btn"]} ${filter === "yes" ? styles["filter-btn--active"] : ""}`}
+                  onClick={() => setFilter("yes")}
+                >
+                  Asistirán ({guests.filter((g) => g.attendance === "Sí, asistiré").length})
+                </button>
+                <button
+                  type="button"
+                  className={`${styles["filter-btn"]} ${filter === "no" ? styles["filter-btn--active"] : ""}`}
+                  onClick={() => setFilter("no")}
+                >
+                  No asistirán ({guests.filter((g) => g.attendance === "No podré asistir").length})
+                </button>
+              </div>
             </div>
 
             <div className={styles["table-wrapper"]}>
@@ -519,15 +551,16 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {confirmedGuests.length === 0 ? (
+                  {filteredGuests.length === 0 ? (
                     <tr>
                       <td colSpan={9} style={{ textAlign: "center", padding: "30px" }}>
-                        No hay invitados confirmados que asistan todavía.
+                        No hay invitados registrados que coincidan con el filtro.
                       </td>
                     </tr>
                   ) : (
-                    confirmedGuests.map((guest) => {
-                      const totalDue = getTicketPrice(guest.ticket_type, guest.created_at);
+                    filteredGuests.map((guest) => {
+                      const isNotAttending = guest.attendance === "No podré asistir";
+                      const totalDue = isNotAttending ? 0 : getTicketPrice(guest.ticket_type, guest.created_at);
                       const totalPaid = getGuestTotalPaid(guest.id);
 
                       return (
@@ -546,22 +579,22 @@ export default function AdminDashboard() {
                               </div>
                             )}
                           </td>
-                          <td>{ticketTypeLabel(guest.ticket_type)}</td>
-                          <td>${totalDue.toLocaleString("es-AR")}</td>
+                          <td>{isNotAttending ? "No asiste" : ticketTypeLabel(guest.ticket_type)}</td>
+                          <td>{isNotAttending ? "—" : `$${totalDue.toLocaleString("es-AR")}`}</td>
                           <td style={{ textAlign: "center" }}>
-                            {guest.ticket_type === "menor_0_2" ? "—" : renderCellBadge(guest, "1")}
+                            {isNotAttending || guest.ticket_type === "menor_0_2" ? "—" : renderCellBadge(guest, "1")}
                           </td>
                           <td style={{ textAlign: "center" }}>
-                            {guest.ticket_type === "menor_0_2" ? "—" : renderCellBadge(guest, "2")}
+                            {isNotAttending || guest.ticket_type === "menor_0_2" ? "—" : renderCellBadge(guest, "2")}
                           </td>
                           <td style={{ textAlign: "center" }}>
-                            {guest.ticket_type === "menor_0_2" ? "—" : renderCellBadge(guest, "3")}
+                            {isNotAttending || guest.ticket_type === "menor_0_2" ? "—" : renderCellBadge(guest, "3")}
                           </td>
                           <td style={{ textAlign: "center" }}>
-                            {guest.ticket_type === "menor_0_2" ? "—" : renderCellBadge(guest, "4")}
+                            {isNotAttending || guest.ticket_type === "menor_0_2" ? "—" : renderCellBadge(guest, "4")}
                           </td>
                           <td style={{ textAlign: "center" }}>
-                            {guest.ticket_type === "menor_0_2" ? "—" : renderCellBadge(guest, "total")}
+                            {isNotAttending || guest.ticket_type === "menor_0_2" ? "—" : renderCellBadge(guest, "total")}
                           </td>
                           <td>
                             <span
