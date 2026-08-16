@@ -10,6 +10,15 @@ import { supabase } from "@/lib/supabaseClient";
 import { getCurrentPricingConfig, PricingConfig } from "@/lib/pricing";
 import { logEvent } from "@/lib/analytics";
 
+interface Companion {
+  id: string;
+  fullName: string;
+  attendance: string;
+  dietary: string;
+  ticketType: string;
+  installmentNumber: string;
+}
+
 export const AttendanceSection: React.FC = () => {
   const { reward } = useReward("like-btn", "emoji", {
     emoji: ["❤️"],
@@ -33,6 +42,14 @@ export const AttendanceSection: React.FC = () => {
 
   const [copiedAlias, setCopiedAlias] = useState(false);
   const [activeTab, setActiveTab] = useState<"rsvp" | "payment">("rsvp");
+
+  // Multi-guest state
+  const [companions, setCompanions] = useState<Companion[]>([]);
+  const [applySameDietary, setApplySameDietary] = useState(false);
+  const [applySamePayment, setApplySamePayment] = useState(false);
+
+  const [isCardFlipped, setIsCardFlipped] = useState(false);
+  const [showPolicyPopover, setShowPolicyPopover] = useState(false);
 
   const handleCopyAlias = () => {
     navigator.clipboard.writeText("karysouvenirs");
@@ -73,8 +90,6 @@ export const AttendanceSection: React.FC = () => {
       try {
         const config = await getCurrentPricingConfig();
         setPricingConfig(config);
-
-        // Payments and Cuota 1 are active natively starting now
         setShowPaymentOption(true);
       } catch (err) {
         console.error("Error fetching pricing configuration:", err);
@@ -82,6 +97,30 @@ export const AttendanceSection: React.FC = () => {
     }
     fetchConfig();
   }, []);
+
+  // Sincronizar requisitos dietarios si applySameDietary está activo
+  useEffect(() => {
+    if (applySameDietary) {
+      setCompanions((prev) =>
+        prev.map((c) => ({
+          ...c,
+          dietary: formData.dietary,
+        }))
+      );
+    }
+  }, [formData.dietary, applySameDietary]);
+
+  // Sincronizar conceptos de pago si applySamePayment está activo
+  useEffect(() => {
+    if (applySamePayment) {
+      setCompanions((prev) =>
+        prev.map((c) => ({
+          ...c,
+          installmentNumber: formData.installmentNumber,
+        }))
+      );
+    }
+  }, [formData.installmentNumber, applySamePayment]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -97,6 +136,34 @@ export const AttendanceSection: React.FC = () => {
     }
   };
 
+  const handleAddCompanion = () => {
+    const newCompanion: Companion = {
+      id: Date.now().toString(),
+      fullName: "",
+      attendance: "Sí, asistiré",
+      dietary: applySameDietary ? formData.dietary : "",
+      ticketType: "adulto",
+      installmentNumber: applySamePayment ? formData.installmentNumber : "total",
+    };
+    setCompanions((prev) => [...prev, newCompanion]);
+  };
+
+  const handleRemoveCompanion = (id: string) => {
+    setCompanions((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const handleCompanionChange = (id: string, name: keyof Companion, value: string) => {
+    setCompanions((prev) =>
+      prev.map((c) => {
+        if (c.id === id) {
+          const updated = { ...c, [name]: value };
+          return updated;
+        }
+        return c;
+      })
+    );
+  };
+
   const sanitizeFilename = (name: string) => {
     return name
       .toLowerCase()
@@ -106,21 +173,62 @@ export const AttendanceSection: React.FC = () => {
       .replace(/_+/g, "_"); // Collapse multiple underscores
   };
 
+  // Calcular el monto total acumulado para el pago consolidado
+  const getCalculateTotalAmount = () => {
+    if (!pricingConfig || formData.informPayment !== "si") return 0;
+
+    let total = 0;
+
+    // Primer integrante
+    const mainAttends = formData.attendance === "Sí, asistiré";
+    const mainIsFree = formData.ticketType === "menor_0_2";
+    if (mainAttends && !mainIsFree) {
+      total +=
+        formData.installmentNumber === "total"
+          ? pricingConfig.prices[formData.ticketType] ?? 0
+          : pricingConfig.installmentPrices[formData.ticketType] ?? 0;
+    }
+
+    // Acompañantes
+    companions.forEach((c) => {
+      const attends = c.attendance === "Sí, asistiré";
+      const isFree = c.ticketType === "menor_0_2";
+      if (attends && !isFree) {
+        total +=
+          c.installmentNumber === "total"
+            ? pricingConfig.prices[c.ticketType] ?? 0
+            : pricingConfig.installmentPrices[c.ticketType] ?? 0;
+      }
+    });
+
+    return total;
+  };
+
+  const currentPayAmount = getCalculateTotalAmount();
+  const wantsToApprovePayment = formData.informPayment === "si" && currentPayAmount > 0;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitStatus(null);
 
-    // Validate inputs
+    // 1. Validaciones iniciales
     if (!formData.fullName.trim()) {
       setSubmitStatus({ type: "error", text: "Por favor, ingresa tu nombre completo." });
       return;
     }
 
-    const isAttending = formData.attendance === "Sí, asistiré";
-    const isFreeTicket = isAttending && formData.ticketType === "menor_0_2";
-    const wantsToPay = isAttending && !isFreeTicket;
+    // Validar nombres de los acompañantes
+    for (let i = 0; i < companions.length; i++) {
+      if (!companions[i].fullName.trim()) {
+        setSubmitStatus({
+          type: "error",
+          text: `Por favor, ingresa el nombre completo del acompañante #${i + 1}.`,
+        });
+        return;
+      }
+    }
 
-    if (wantsToPay && !receiptFile) {
+    if (wantsToApprovePayment && !receiptFile) {
       setSubmitStatus({
         type: "error",
         text: "Por favor, selecciona una foto o PDF del comprobante de transferencia.",
@@ -131,41 +239,58 @@ export const AttendanceSection: React.FC = () => {
     setSubmitting(true);
 
     try {
-      // 1. Sanitize name for unique verification and insert guest
-      const finalGuestData = {
-        full_name: formData.fullName.trim(),
-        attendance: formData.attendance,
-        dietary: formData.dietary.trim() || "Ninguno",
-        ticket_type: isAttending ? formData.ticketType : "adulto", // default required by db constraint
-      };
+      // 2. Control de duplicados en la base de datos (para todos a la vez)
+      const allNames = [
+        formData.fullName.trim(),
+        ...companions.map((c) => c.fullName.trim()),
+      ];
 
-      const { data: guestRecord, error: guestError } = await supabase
+      const { data: existingGuests, error: lookupError } = await supabase
         .from("guests")
-        .insert(finalGuestData)
-        .select("id")
-        .single();
+        .select("full_name")
+        .in("full_name", allNames);
 
-      if (guestError) {
-        // Unique key constraint violation code
-        if (guestError.code === "23505") {
-          setSubmitStatus({
-            type: "error",
-            text: "Este nombre ya está registrado. Si querés informar un pago adicional, por favor andá al Portal de Pagos.",
-            isDuplicate: true,
-          });
-          setSubmitting(false);
-          return;
-        }
-        throw guestError;
+      if (lookupError) throw lookupError;
+
+      if (existingGuests && existingGuests.length > 0) {
+        const dupNames = existingGuests.map((eg) => eg.full_name).join(", ");
+        setSubmitStatus({
+          type: "error",
+          text: `El o los siguientes invitados ya están registrados: ${dupNames}. Si querés informar un pago adicional, por favor andá al Portal de Pagos.`,
+          isDuplicate: true,
+        });
+        setSubmitting(false);
+        return;
       }
 
-      const guestId = guestRecord.id;
+      // 3. Registrar a todos en la tabla `guests`
+      const guestRows = [
+        {
+          full_name: formData.fullName.trim(),
+          attendance: formData.attendance,
+          dietary: formData.dietary.trim() || "Ninguno",
+          ticket_type: formData.attendance === "Sí, asistiré" ? formData.ticketType : "adulto",
+        },
+        ...companions.map((c) => ({
+          full_name: c.fullName.trim(),
+          attendance: c.attendance,
+          dietary: c.dietary.trim() || "Ninguno",
+          ticket_type: c.attendance === "Sí, asistiré" ? c.ticketType : "adulto",
+        })),
+      ];
 
-      // 2. Upload file & Insert Payment if paying
-      if (wantsToPay && !isFreeTicket && receiptFile) {
+      const { data: createdGuests, error: guestInsertError } = await supabase
+        .from("guests")
+        .insert(guestRows)
+        .select("id, full_name");
+
+      if (guestInsertError) throw guestInsertError;
+
+      // 4. Subir archivo de comprobante e insertar pagos asociados (si aplica)
+      if (wantsToApprovePayment && receiptFile && createdGuests) {
         const fileExt = receiptFile.name.split(".").pop();
-        const cleanName = sanitizeFilename(formData.fullName);
-        const filePath = `${cleanName}_cuota_${formData.installmentNumber}_${Date.now()}.${fileExt}`;
+        const cleanNames = allNames.map((n) => sanitizeFilename(n)).join("_").substring(0, 80);
+        const filePath = `grupo_${cleanNames}_${Date.now()}.${fileExt}`;
 
         const { error: uploadError } = await supabase.storage
           .from("receipts")
@@ -176,46 +301,76 @@ export const AttendanceSection: React.FC = () => {
         const { data: urlData } = supabase.storage.from("receipts").getPublicUrl(filePath);
         const receiptUrl = urlData.publicUrl;
 
-        // Calculate amount based on pricing configuration
-        let amount = 0;
-        if (pricingConfig) {
-          amount =
-            formData.installmentNumber === "total"
-              ? pricingConfig.prices[formData.ticketType]
-              : pricingConfig.installmentPrices[formData.ticketType];
+        // Armar registros de pago individuales con la misma URL del comprobante
+        const paymentRows: any[] = [];
+
+        // Pago primer integrante
+        const mainAttends = formData.attendance === "Sí, asistiré";
+        const mainIsFree = formData.ticketType === "menor_0_2";
+        if (mainAttends && !mainIsFree) {
+          const guestRecord = createdGuests.find((cg) => cg.full_name === formData.fullName.trim());
+          if (guestRecord) {
+            const amount = formData.installmentNumber === "total"
+              ? pricingConfig?.prices[formData.ticketType] ?? 0
+              : pricingConfig?.installmentPrices[formData.ticketType] ?? 0;
+
+            paymentRows.push({
+              guest_id: guestRecord.id,
+              installment_number: formData.installmentNumber,
+              amount: amount,
+              receipt_url: receiptUrl,
+              status: "pending",
+            });
+          }
         }
 
-        const { error: paymentError } = await supabase.from("payments").insert({
-          guest_id: guestId,
-          installment_number: formData.installmentNumber,
-          amount: amount,
-          receipt_url: receiptUrl,
-          status: "pending",
+        // Pago acompañantes
+        companions.forEach((c) => {
+          const attends = c.attendance === "Sí, asistiré";
+          const isFree = c.ticketType === "menor_0_2";
+          if (attends && !isFree) {
+            const guestRecord = createdGuests.find((cg) => cg.full_name === c.fullName.trim());
+            if (guestRecord) {
+              const amount = c.installmentNumber === "total"
+                ? pricingConfig?.prices[c.ticketType] ?? 0
+                : pricingConfig?.installmentPrices[c.ticketType] ?? 0;
+
+              paymentRows.push({
+                guest_id: guestRecord.id,
+                installment_number: c.installmentNumber,
+                amount: amount,
+                receipt_url: receiptUrl,
+                status: "pending",
+              });
+            }
+          }
         });
 
-        if (paymentError) throw paymentError;
+        if (paymentRows.length > 0) {
+          const { error: paymentError } = await supabase.from("payments").insert(paymentRows);
+          if (paymentError) throw paymentError;
 
-        // Trigger push notification to admin in background
-        fetch("/api/notify-payment", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            guestName: formData.fullName,
-            amount: amount,
-            installmentNumber: formData.installmentNumber,
-          }),
-        }).catch((err) => console.error("Error triggering push notification:", err));
+          // Enviar push de aviso grupal al admin
+          const namesList = allNames.join(", ");
+          fetch("/api/notify-payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              guestName: namesList,
+              amount: currentPayAmount,
+              installmentNumber: "inicial",
+            }),
+          }).catch((err) => console.error("Error triggering push notification:", err));
+        }
       }
 
       // Success!
       setSubmitStatus({
         type: "success",
-        text: isAttending
-          ? "¡Asistencia registrada correctamente! Gracias por confirmar."
-          : "Lamentamos que no puedas asistir. Tu respuesta ha sido guardada.",
+        text: "¡Asistencia registrada correctamente! Muchas gracias por confirmar.",
       });
 
-      // Reset form on success
+      // Reset
       setFormData({
         fullName: "",
         attendance: "Sí, asistiré",
@@ -224,6 +379,9 @@ export const AttendanceSection: React.FC = () => {
         informPayment: "si",
         installmentNumber: "total",
       });
+      setCompanions([]);
+      setApplySameDietary(false);
+      setApplySamePayment(false);
       setReceiptFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
 
@@ -239,15 +397,8 @@ export const AttendanceSection: React.FC = () => {
     }
   };
 
-  // Helper values to show current pricing
-  const isAttending = formData.attendance === "Sí, asistiré";
-  const ticketPrice = pricingConfig?.prices[formData.ticketType] ?? 0;
-  const installmentPrice = pricingConfig?.installmentPrices[formData.ticketType] ?? 0;
-  const isFreeTicket = formData.ticketType === "menor_0_2";
-
-  // Calculate what they are paying
-  const currentPayAmount =
-    formData.installmentNumber === "total" ? ticketPrice : installmentPrice;
+  const isMainAttending = formData.attendance === "Sí, asistiré";
+  const isMainFreeTicket = isMainAttending && formData.ticketType === "menor_0_2";
 
   return (
     <section ref={sectionRef} className={styles["attendance-section"]} id="rsvp">
@@ -256,9 +407,7 @@ export const AttendanceSection: React.FC = () => {
 
         <div className={styles["attendance-section__content"]}>
           <div className={styles["attendance-section__header"]}>
-            <h2
-              className={`${styles["attendance-section__title"]} ornate-headline silver-gradient-text`}
-            >
+            <h2 className={`${styles["attendance-section__title"]} ornate-headline silver-gradient-text`}>
               Confirmar Asistencia
             </h2>
             <p className={styles["attendance-section__subtitle"]}>
@@ -289,105 +438,70 @@ export const AttendanceSection: React.FC = () => {
 
           {activeTab === "rsvp" ? (
             <form onSubmit={handleSubmit} className={styles["attendance-section__form"]}>
-            <Input
-              name="fullName"
-              label="NOMBRE COMPLETO (Tal como figura en la tarjeta)"
-              placeholder="Tu nombre y apellido"
-              value={formData.fullName}
-              onChange={handleChange}
-              disabled={submitting}
-              required
-            />
+              {/* Primer Integrante (Principal) */}
+              <div className={styles["guest-block"]}>
+                <h4 className={styles["guest-block-title"]}>👤 Integrante Principal</h4>
+                
+                <Input
+                  name="fullName"
+                  label="NOMBRE COMPLETO (Tal como figura en la tarjeta)"
+                  placeholder="Tu nombre y apellido"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  disabled={submitting}
+                  required
+                />
 
-            <div className={styles["attendance-section__form-row"]}>
-              <Select
-                name="attendance"
-                label="ASISTENCIA"
-                value={formData.attendance}
-                onChange={handleChange}
-                disabled={submitting}
-              >
-                <option value="Sí, asistiré">Sí, asistiré</option>
-                <option value="No podré asistir">No podré asistir</option>
-              </Select>
-
-              <Input
-                name="dietary"
-                label="REQ. ALIMENTARIOS"
-                placeholder="Ninguno, Vegano, Celíaco, etc."
-                value={formData.dietary}
-                onChange={handleChange}
-                disabled={submitting}
-              />
-            </div>
-
-            {isAttending && pricingConfig && (
-              <>
                 <div className={styles["attendance-section__form-row"]}>
                   <Select
-                    name="ticketType"
-                    label="TIPO DE ENTRADA"
-                    value={formData.ticketType}
+                    name="attendance"
+                    label="ASISTENCIA"
+                    value={formData.attendance}
                     onChange={handleChange}
                     disabled={submitting}
                   >
-                    <option value="adulto">
-                      Adulto (${pricingConfig.prices.adulto.toLocaleString("es-AR")}
-                      {pricingConfig.allowInstallments ? ` o 4 cuotas de $${pricingConfig.installmentPrices.adulto.toLocaleString("es-AR")}` : ""}
-                      )
-                    </option>
-                    <option value="adolescente">
-                      Adolescente (12 a 17 años) (${pricingConfig.prices.adolescente.toLocaleString("es-AR")}
-                      {pricingConfig.allowInstallments ? ` o 4 cuotas de $${pricingConfig.installmentPrices.adolescente.toLocaleString("es-AR")}` : ""}
-                      )
-                    </option>
-                    <option value="menor_3_11">
-                      Menor 3-11 años (${pricingConfig.prices.menor_3_11.toLocaleString("es-AR")}
-                      {pricingConfig.allowInstallments ? ` o 4 cuotas de $${pricingConfig.installmentPrices.menor_3_11.toLocaleString("es-AR")}` : ""}
-                      )
-                    </option>
-                    <option value="menor_0_2">Menor 0-2 años ($0)</option>
+                    <option value="Sí, asistiré">Sí, asistiré</option>
+                    <option value="No podré asistir">No podré asistir</option>
                   </Select>
 
-                  {showPaymentOption && !isFreeTicket && (
-                    <div className={styles["attendance-section__col"]}>
-                      <p className={styles["attendance-section__warning"]}>
-                        ⚠️ <strong>Importante:</strong> Para confirmar tu presencia debés informar la transferencia de la primera cuota o el pago total. Después del 30 de Octubre el pago se realiza en una sola cuota (pago total) y la tarjeta tiene un recargo de $10.000 para todas las categorías.
-                      </p>
-                    </div>
-                  )}
+                  <Input
+                    name="dietary"
+                    label="REQ. ALIMENTARIOS"
+                    placeholder="Ninguno, Vegano, Celíaco, etc."
+                    value={formData.dietary}
+                    onChange={handleChange}
+                    disabled={submitting}
+                  />
                 </div>
 
-                {!isFreeTicket && (
-                  <div className={styles["attendance-section__payment-box"]}>
-                    <div className={styles["attendance-section__bank-info"]}>
-                      <div className={styles["attendance-section__bank-title"]}>
-                        Datos de Transferencia Bancaria
-                      </div>
-                      <div className={styles["attendance-section__bank-details"]}>
-                        <p>
-                          <strong>Titular:</strong> KARINA ANDREA GARCIA
-                        </p>
-                        <p>
-                          <strong>CUIL:</strong> 27-24012475-6
-                        </p>
-                        <p>
-                          <strong>CBU:</strong> 0000003100084572082442
-                        </p>
-                        <p>
-                          <strong>Alias:</strong> karysouvenirs
-                          <button
-                            type="button"
-                            onClick={handleCopyAlias}
-                            className={styles["attendance-section__copy-btn"]}
-                          >
-                            {copiedAlias ? "¡Copiado!" : "Copiar"}
-                          </button>
-                        </p>
-                      </div>
-                    </div>
+                {isMainAttending && pricingConfig && (
+                  <div className={styles["attendance-section__form-row"]}>
+                    <Select
+                      name="ticketType"
+                      label="TIPO DE ENTRADA"
+                      value={formData.ticketType}
+                      onChange={handleChange}
+                      disabled={submitting}
+                    >
+                      <option value="adulto">
+                        Adulto (${pricingConfig.prices.adulto.toLocaleString("es-AR")}
+                        {pricingConfig.allowInstallments ? ` o 4 cuotas de $${pricingConfig.installmentPrices.adulto.toLocaleString("es-AR")}` : ""}
+                        )
+                      </option>
+                      <option value="adolescente">
+                        Adolescente (12 a 17 años) (${pricingConfig.prices.adolescente.toLocaleString("es-AR")}
+                        {pricingConfig.allowInstallments ? ` o 4 cuotas de $${pricingConfig.installmentPrices.adolescente.toLocaleString("es-AR")}` : ""}
+                        )
+                      </option>
+                      <option value="menor_3_11">
+                        Menor 3-11 años (${pricingConfig.prices.menor_3_11.toLocaleString("es-AR")}
+                        {pricingConfig.allowInstallments ? ` o 4 cuotas de $${pricingConfig.installmentPrices.menor_3_11.toLocaleString("es-AR")}` : ""}
+                        )
+                      </option>
+                      <option value="menor_0_2">Menor 0-2 años ($0)</option>
+                    </Select>
 
-                    <div className={styles["attendance-section__form-row"]}>
+                    {showPaymentOption && !isMainFreeTicket && (
                       <Select
                         name="installmentNumber"
                         label="CONCEPTO A PAGAR"
@@ -395,105 +509,297 @@ export const AttendanceSection: React.FC = () => {
                         onChange={handleChange}
                         disabled={submitting}
                       >
-                        <option value="total">
-                          Pago Total (${ticketPrice.toLocaleString("es-AR")})
-                        </option>
-                        <option
-                          value="1"
-                          disabled={!pricingConfig.allowInstallments}
-                        >
-                          Cuota 1 ({!pricingConfig.allowInstallments ? "Deshabilitado" : `$${installmentPrice.toLocaleString("es-AR")}`})
-                        </option>
-                        <option
-                          value="2"
-                          disabled={!pricingConfig.allowInstallments}
-                        >
-                          Cuota 2 ({!pricingConfig.allowInstallments ? "Deshabilitado" : `$${installmentPrice.toLocaleString("es-AR")}`})
-                        </option>
-                        <option
-                          value="3"
-                          disabled={!pricingConfig.allowInstallments}
-                        >
-                          Cuota 3 ({!pricingConfig.allowInstallments ? "Deshabilitado" : `$${installmentPrice.toLocaleString("es-AR")}`})
-                        </option>
-                        <option
-                          value="4"
-                          disabled={!pricingConfig.allowInstallments}
-                        >
-                          Cuota 4 ({!pricingConfig.allowInstallments ? "Deshabilitado" : `$${installmentPrice.toLocaleString("es-AR")}`})
-                        </option>
+                        <option value="total">Pago Total Tarjeta</option>
+                        {pricingConfig.allowInstallments && (
+                          <option value="1">Primera Cuota</option>
+                        )}
                       </Select>
-
-                      <div className={styles["attendance-section__file-input"]}>
-                        <span className={styles["attendance-section__file-label"]}>
-                          COMPROBANTE (FOTO / PDF)
-                        </span>
-                        <div
-                          className={`${styles["attendance-section__file-input-wrapper"]} ${
-                            receiptFile ? styles["attendance-section__file-input-wrapper--filled"] : ""
-                          }`}
-                          onClick={() => !submitting && fileInputRef.current?.click()}
-                        >
-                          {receiptFile ? receiptFile.name : "Seleccionar Archivo..."}
-                        </div>
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          style={{ display: "none" }}
-                          accept="image/*,application/pdf"
-                          onChange={handleFileChange}
-                          disabled={submitting}
-                        />
-                      </div>
-                    </div>
-
-                    {!pricingConfig.allowInstallments && (
-                      <p className={styles["attendance-section__warning-strong"]}>
-                        * El pago en cuotas ya no está disponible. Después del 30 de Octubre solo se permite abonar en un único pago total con recargo.
-                      </p>
                     )}
-
-                    <div className={styles["attendance-section__amount-badge"]}>
-                      Monto a transferir: ${currentPayAmount.toLocaleString("es-AR")}
-                    </div>
                   </div>
                 )}
-              </>
-            )}
-
-            {submitStatus && (
-              <div
-                className={`${styles["attendance-section__message"]} ${
-                  submitStatus.type === "success"
-                    ? styles["attendance-section__message--success"]
-                    : styles["attendance-section__message--error"]
-                }`}
-              >
-                <p style={{ margin: 0 }}>{submitStatus.text}</p>
-                {submitStatus.isDuplicate && (
-                  <Button
-                    type="button"
-                    variant="text"
-                    href="/pagar"
-                    className="mt-2"
-                    style={{ fontSize: "14px", textDecoration: "underline", color: "var(--color-primary)" }}
-                  >
-                    Ir al Portal de Pagos
-                  </Button>
-                )}
               </div>
-            )}
 
-            <Button
-              type="submit"
-              variant="silver"
-              className={styles["attendance-section__submit-btn"]}
-              id="like-btn"
-              disabled={submitting}
-            >
-              {submitting ? "PROCESANDO..." : "ENVIAR CONFIRMACIÓN"}
-            </Button>
-          </form>
+              {/* Controles de Llenado Rápido (Quick Settings) */}
+              {companions.length > 0 && (
+                <div className={styles["quick-settings-row"]}>
+                  <label className={styles["quick-settings-checkbox"]}>
+                    <input
+                      type="checkbox"
+                      checked={applySameDietary}
+                      onChange={(e) => setApplySameDietary(e.target.checked)}
+                      disabled={submitting}
+                    />
+                    <span>Sincronizar requisitos alimenticios con todos</span>
+                  </label>
+                  <label className={styles["quick-settings-checkbox"]}>
+                    <input
+                      type="checkbox"
+                      checked={applySamePayment}
+                      onChange={(e) => setApplySamePayment(e.target.checked)}
+                      disabled={submitting}
+                    />
+                    <span>Sincronizar concepto de pago con todos</span>
+                  </label>
+                </div>
+              )}
+
+              {/* Lista de Acompañantes adicionales */}
+              {companions.map((companion, index) => (
+                <div key={companion.id} className={styles["guest-block"]}>
+                  <div className={styles["guest-block-header"]}>
+                    <h4 className={styles["guest-block-title"]}>👨‍👩‍👧‍👦 Acompañante #{index + 1}</h4>
+                    <button
+                      type="button"
+                      className={styles["remove-companion-btn"]}
+                      onClick={() => handleRemoveCompanion(companion.id)}
+                      disabled={submitting}
+                    >
+                      Quitar ✕
+                    </button>
+                  </div>
+
+                  <Input
+                    name={`companion_fullName_${companion.id}`}
+                    label="NOMBRE COMPLETO"
+                    placeholder="Nombre y apellido del acompañante"
+                    value={companion.fullName}
+                    onChange={(e) => handleCompanionChange(companion.id, "fullName", e.target.value)}
+                    disabled={submitting}
+                    required
+                  />
+
+                  <div className={styles["attendance-section__form-row"]}>
+                    <Select
+                      name={`companion_attendance_${companion.id}`}
+                      label="ASISTENCIA"
+                      value={companion.attendance}
+                      onChange={(e) => handleCompanionChange(companion.id, "attendance", e.target.value)}
+                      disabled={submitting}
+                    >
+                      <option value="Sí, asistiré">Sí, asistiré</option>
+                      <option value="No podré asistir">No podré asistir</option>
+                    </Select>
+
+                    <Input
+                      name={`companion_dietary_${companion.id}`}
+                      label="REQ. ALIMENTARIOS"
+                      placeholder="Ninguno, Vegano, Celíaco, etc."
+                      value={companion.dietary}
+                      onChange={(e) => handleCompanionChange(companion.id, "dietary", e.target.value)}
+                      disabled={submitting || applySameDietary}
+                    />
+                  </div>
+
+                  {companion.attendance === "Sí, asistiré" && pricingConfig && (
+                    <div className={styles["attendance-section__form-row"]}>
+                      <Select
+                        name={`companion_ticketType_${companion.id}`}
+                        label="TIPO DE ENTRADA"
+                        value={companion.ticketType}
+                        onChange={(e) => handleCompanionChange(companion.id, "ticketType", e.target.value)}
+                        disabled={submitting}
+                      >
+                        <option value="adulto">
+                          Adulto (${pricingConfig.prices.adulto.toLocaleString("es-AR")}
+                          {pricingConfig.allowInstallments ? ` o 4 cuotas de $${pricingConfig.installmentPrices.adulto.toLocaleString("es-AR")}` : ""}
+                          )
+                        </option>
+                        <option value="adolescente">
+                          Adolescente (12 a 17 años) (${pricingConfig.prices.adolescente.toLocaleString("es-AR")}
+                          {pricingConfig.allowInstallments ? ` o 4 cuotas de $${pricingConfig.installmentPrices.adolescente.toLocaleString("es-AR")}` : ""}
+                          )
+                        </option>
+                        <option value="menor_3_11">
+                          Menor 3-11 años (${pricingConfig.prices.menor_3_11.toLocaleString("es-AR")}
+                          {pricingConfig.allowInstallments ? ` o 4 cuotas de $${pricingConfig.installmentPrices.menor_3_11.toLocaleString("es-AR")}` : ""}
+                          )
+                        </option>
+                        <option value="menor_0_2">Menor 0-2 años ($0)</option>
+                      </Select>
+
+                      {showPaymentOption && companion.ticketType !== "menor_0_2" && (
+                        <Select
+                          name={`companion_installmentNumber_${companion.id}`}
+                          label="CONCEPTO A PAGAR"
+                          value={companion.installmentNumber}
+                          onChange={(e) => handleCompanionChange(companion.id, "installmentNumber", e.target.value)}
+                          disabled={submitting || applySamePayment}
+                        >
+                          <option value="total">Pago Total Tarjeta</option>
+                          {pricingConfig.allowInstallments && (
+                            <option value="1">Primera Cuota</option>
+                          )}
+                        </Select>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {/* Botón para agregar más acompañantes */}
+              <button
+                type="button"
+                className={styles["add-companion-btn"]}
+                onClick={handleAddCompanion}
+                disabled={submitting}
+              >
+                ➕ Agregar familiar / acompañante
+              </button>
+
+              {/* Cuadro de Información Bancaria y Carga de Comprobante Consolidada */}
+              {wantsToApprovePayment && pricingConfig && (
+                <div className={styles["attendance-section__payment-box"]}>
+                  <div className={styles.policyAlertContainer}>
+                    <p className={styles.policyAlertText}>
+                      ⚠️ Pago único y recargo de $10.000 después del 30 de Octubre.
+                    </p>
+                    <div className={styles.policyInfoTriggerWrapper}>
+                      <button
+                        type="button"
+                        className={styles.policyInfoTrigger}
+                        onClick={() => setShowPolicyPopover(!showPolicyPopover)}
+                        onBlur={() => setTimeout(() => setShowPolicyPopover(false), 200)}
+                        title="Ver política de pago completa"
+                      >
+                        ℹ️
+                      </button>
+                      {showPolicyPopover && (
+                        <div className={styles.policyPopover}>
+                          <p style={{ margin: 0, fontSize: "12.5px", lineHeight: "1.4", color: "var(--color-on-surface)" }}>
+                            Para confirmar tu presencia debés informar la transferencia de la primera cuota o el pago total. Después del 30 de Octubre el pago se realiza en una sola cuota (pago total) y la tarjeta tiene un recargo de $10.000 para todas las categorías.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className={styles.paymentCard3DWrapper}>
+                    <div
+                      className={`${styles.paymentCard3D} ${
+                        isCardFlipped ? styles.paymentCard3DFlipped : ""
+                      }`}
+                      onClick={() => setIsCardFlipped(!isCardFlipped)}
+                    >
+                      {/* CARD FRONT */}
+                      <div className={styles.paymentCard3DFront}>
+                        <div className={styles.paymentCard3DGlow}></div>
+                        <div className={styles.paymentCard3DChip}></div>
+                        <div className={styles.paymentCard3DBrand}>DATOS BANCARIOS</div>
+                        <div className={styles.paymentCard3DPrompt}>
+                          <span>💳 VER DATOS DE TRANSFERENCIA</span>
+                          <span className={styles.paymentCard3DSubprompt}>(Toca para dar vuelta)</span>
+                        </div>
+                      </div>
+
+                      {/* CARD BACK */}
+                      <div className={styles.paymentCard3DBack} onClick={(e) => e.stopPropagation()}>
+                        <div className={styles.paymentCard3DBackStripe}></div>
+                        <div className={styles.paymentCard3DDetails}>
+                          <div className={styles.paymentCard3DDetailRow}>
+                            <span className={styles.paymentCard3DLabel}>TITULAR:</span>
+                            <strong className={styles.paymentCard3DValue}>KARINA ANDREA GARCIA</strong>
+                          </div>
+                          <div className={styles.paymentCard3DDetailRow}>
+                            <span className={styles.paymentCard3DLabel}>CUIL:</span>
+                            <strong className={styles.paymentCard3DValue}>27-24012475-6</strong>
+                          </div>
+                          <div className={styles.paymentCard3DDetailRow}>
+                            <span className={styles.paymentCard3DLabel}>CBU:</span>
+                            <strong className={styles.paymentCard3DValue} style={{ letterSpacing: "0.5px" }}>0000003100084572082442</strong>
+                          </div>
+                          <div className={styles.paymentCard3DDetailRow} style={{ marginTop: "4px" }}>
+                            <span className={styles.paymentCard3DLabel}>ALIAS:</span>
+                            <div className={styles.paymentCard3DAliasWrapper}>
+                              <strong className={styles.paymentCard3DValue} style={{ color: "var(--color-primary)" }}>karysouvenirs</strong>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCopyAlias();
+                                }}
+                                className={styles.paymentCard3DCopyBtn}
+                              >
+                                {copiedAlias ? "¡Copiado!" : "Copiar"}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                        <div className={styles.paymentCard3DBackFooter} onClick={() => setIsCardFlipped(false)}>
+                          ↩ Volver al frente
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={styles["attendance-section__form-row"]}>
+                    <div className={styles["attendance-section__file-input"]} style={{ width: "100%" }}>
+                      <span className={styles["attendance-section__file-label"]}>
+                        COMPROBANTE GENERAL DE TRANSFERENCIA (FOTO / PDF)
+                      </span>
+                      <div
+                        className={`${styles["attendance-section__file-input-wrapper"]} ${
+                          receiptFile ? styles["attendance-section__file-input-wrapper--filled"] : ""
+                        }`}
+                        onClick={() => !submitting && fileInputRef.current?.click()}
+                      >
+                        {receiptFile ? receiptFile.name : "Seleccionar Archivo..."}
+                      </div>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        style={{ display: "none" }}
+                        accept="image/*,application/pdf"
+                        onChange={handleFileChange}
+                        disabled={submitting}
+                      />
+                    </div>
+                  </div>
+
+                  {!pricingConfig.allowInstallments && (
+                    <p className={styles["attendance-section__warning-strong"]}>
+                      * El pago en cuotas ya no está disponible. Después del 30 de Octubre solo se permite abonar en un único pago total con recargo.
+                    </p>
+                  )}
+
+                  <div className={styles["attendance-section__amount-badge"]} style={{ fontSize: "15px", padding: "14px", borderRadius: "8px" }}>
+                    Monto General a Transferir: ${currentPayAmount.toLocaleString("es-AR")}
+                  </div>
+                </div>
+              )}
+
+              {submitStatus && (
+                <div
+                  className={`${styles["attendance-section__message"]} ${
+                    submitStatus.type === "success"
+                      ? styles["attendance-section__message--success"]
+                      : styles["attendance-section__message--error"]
+                  }`}
+                >
+                  <p style={{ margin: 0 }}>{submitStatus.text}</p>
+                  {submitStatus.isDuplicate && (
+                    <Button
+                      type="button"
+                      variant="text"
+                      href="/pagar"
+                      className="mt-2"
+                      style={{ fontSize: "14px", textDecoration: "underline", color: "var(--color-primary)" }}
+                    >
+                      Ir al Portal de Pagos
+                    </Button>
+                  )}
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                variant="silver"
+                className={styles["attendance-section__submit-btn"]}
+                id="like-btn"
+                disabled={submitting}
+              >
+                {submitting ? "PROCESANDO..." : "ENVIAR CONFIRMACIÓN"}
+              </Button>
+            </form>
           ) : (
             <div className={styles["attendance-section__portal-tab-content"]}>
               <p className={styles["attendance-section__portal-desc"]}>

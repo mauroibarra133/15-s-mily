@@ -50,6 +50,8 @@ export const PaymentPortal: React.FC = () => {
   } | null>(null);
 
   const [copiedAlias, setCopiedAlias] = useState(false);
+  const [isCardFlipped, setIsCardFlipped] = useState(false);
+  const [showPolicyPopover, setShowPolicyPopover] = useState(false);
 
   const handleCopyAlias = () => {
     navigator.clipboard.writeText("karysouvenirs");
@@ -604,47 +606,87 @@ export const PaymentPortal: React.FC = () => {
                   className={styles["form-group"]}
                   style={{ marginTop: "28px" }}
                 >
-                  {/* Bank Details */}
-                  <div className={attendanceStyles["attendance-section__bank-info"]}>
-                    <div className={attendanceStyles["attendance-section__bank-title"]}>
-                      Datos de Transferencia Bancaria
-                    </div>
-                    <div className={attendanceStyles["attendance-section__bank-details"]}>
-                      <p>
-                        <strong>Titular:</strong> KARINA ANDREA GARCIA
-                      </p>
-                      <p>
-                        <strong>CUIL:</strong> 27-24012475-6
-                      </p>
-                      <p>
-                        <strong>CBU:</strong> 0000003100084572082442
-                      </p>
-                      <p>
-                        <strong>Alias:</strong> karysouvenirs
-                        <button
-                          type="button"
-                          onClick={handleCopyAlias}
-                          style={{
-                            background: "rgba(132, 173, 255, 0.15)",
-                            border: "1px solid rgba(132, 173, 255, 0.3)",
-                            color: "var(--color-primary)",
-                            borderRadius: "4px",
-                            padding: "2px 8px",
-                            fontSize: "11px",
-                            cursor: "pointer",
-                            marginLeft: "8px",
-                            transition: "background 0.2s",
-                          }}
-                        >
-                          {copiedAlias ? "¡Copiado!" : "Copiar"}
-                        </button>
-                      </p>
+                  <div className={styles.policyAlertContainer}>
+                    <p className={styles.policyAlertText}>
+                      ⚠️ Pago único y recargo de $10.000 después del 30 de Octubre.
+                    </p>
+                    <div className={styles.policyInfoTriggerWrapper}>
+                      <button
+                        type="button"
+                        className={styles.policyInfoTrigger}
+                        onClick={() => setShowPolicyPopover(!showPolicyPopover)}
+                        onBlur={() => setTimeout(() => setShowPolicyPopover(false), 200)}
+                        title="Ver política de pago completa"
+                      >
+                        ℹ️
+                      </button>
+                      {showPolicyPopover && (
+                        <div className={styles.policyPopover}>
+                          <p style={{ margin: 0, fontSize: "12.5px", lineHeight: "1.4", color: "var(--color-on-surface)" }}>
+                            Después del 30 de Octubre el pago se realiza en una sola cuota (pago total) y la tarjeta tiene un recargo de $10.000 para todas las categorías.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  <p style={{ fontSize: "12.5px", color: "#ffd0d0", margin: "6px 0 12px 0", textAlign: "left", lineHeight: "1.4", borderLeft: "2px solid #ff716c", paddingLeft: "8px" }}>
-                    ⚠️ <strong>Importante:</strong> Después del 30 de Octubre el pago se realiza en una sola cuota (pago total) y la tarjeta tiene un recargo de $10.000 para todas las categorías.
-                  </p>
+                  <div className={styles.paymentCard3DWrapper}>
+                    <div
+                      className={`${styles.paymentCard3D} ${
+                        isCardFlipped ? styles.paymentCard3DFlipped : ""
+                      }`}
+                      onClick={() => setIsCardFlipped(!isCardFlipped)}
+                    >
+                      {/* CARD FRONT */}
+                      <div className={styles.paymentCard3DFront}>
+                        <div className={styles.paymentCard3DGlow}></div>
+                        <div className={styles.paymentCard3DChip}></div>
+                        <div className={styles.paymentCard3DBrand}>DATOS BANCARIOS</div>
+                        <div className={styles.paymentCard3DPrompt}>
+                          <span>💳 VER DATOS DE TRANSFERENCIA</span>
+                          <span className={styles.paymentCard3DSubprompt}>(Toca para dar vuelta)</span>
+                        </div>
+                      </div>
+
+                      {/* CARD BACK */}
+                      <div className={styles.paymentCard3DBack} onClick={(e) => e.stopPropagation()}>
+                        <div className={styles.paymentCard3DBackStripe}></div>
+                        <div className={styles.paymentCard3DDetails}>
+                          <div className={styles.paymentCard3DDetailRow}>
+                            <span className={styles.paymentCard3DLabel}>TITULAR:</span>
+                            <strong className={styles.paymentCard3DValue}>KARINA ANDREA GARCIA</strong>
+                          </div>
+                          <div className={styles.paymentCard3DDetailRow}>
+                            <span className={styles.paymentCard3DLabel}>CUIL:</span>
+                            <strong className={styles.paymentCard3DValue}>27-24012475-6</strong>
+                          </div>
+                          <div className={styles.paymentCard3DDetailRow}>
+                            <span className={styles.paymentCard3DLabel}>CBU:</span>
+                            <strong className={styles.paymentCard3DValue} style={{ letterSpacing: "0.5px" }}>0000003100084572082442</strong>
+                          </div>
+                          <div className={styles.paymentCard3DDetailRow} style={{ marginTop: "4px" }}>
+                            <span className={styles.paymentCard3DLabel}>ALIAS:</span>
+                            <div className={styles.paymentCard3DAliasWrapper}>
+                              <strong className={styles.paymentCard3DValue} style={{ color: "var(--color-primary)" }}>karysouvenirs</strong>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCopyAlias();
+                                }}
+                                className={styles.paymentCard3DCopyBtn}
+                              >
+                                {copiedAlias ? "¡Copiado!" : "Copiar"}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                        <div className={styles.paymentCard3DBackFooter} onClick={() => setIsCardFlipped(false)}>
+                          ↩ Volver al frente
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
                   <div className={attendanceStyles["attendance-section__form-row"]}>
                     <div
