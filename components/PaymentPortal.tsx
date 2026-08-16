@@ -16,6 +16,7 @@ interface Guest {
   attendance: string;
   dietary: string;
   ticket_type: string;
+  created_at: string;
 }
 
 interface Payment {
@@ -34,13 +35,13 @@ export const PaymentPortal: React.FC = () => {
   const [pricingConfig, setPricingConfig] = useState<PricingConfig | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Guest[]>([]);
-  const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
+  const [selectedGuests, setSelectedGuests] = useState<Guest[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loadingConfig, setLoadingConfig] = useState(true);
   const [loadingPayments, setLoadingPayments] = useState(false);
 
-  // Form states for next payment
-  const [paymentType, setPaymentType] = useState("total");
+  // Form states for multi payment
+  const [guestPaymentTypes, setGuestPaymentTypes] = useState<Record<string, string>>({});
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<{
@@ -77,6 +78,54 @@ export const PaymentPortal: React.FC = () => {
     loadConfig();
   }, []);
 
+  // Load payments for all selected guests automatically when list changes
+  useEffect(() => {
+    async function fetchPayments() {
+      if (selectedGuests.length === 0) {
+        setPayments([]);
+        return;
+      }
+      setLoadingPayments(true);
+      try {
+        const guestIds = selectedGuests.map((g) => g.id);
+        const { data, error } = await supabase
+          .from("payments")
+          .select("*")
+          .in("guest_id", guestIds)
+          .order("created_at", { ascending: true });
+
+        if (error) throw error;
+        setPayments(data || []);
+      } catch (err) {
+        console.error("Error fetching payments for selected guests:", err);
+      } finally {
+        setLoadingPayments(false);
+      }
+    }
+    fetchPayments();
+  }, [selectedGuests]);
+
+  // Pre-select first available options for new guests in selected list
+  useEffect(() => {
+    if (selectedGuests.length === 0) return;
+    setGuestPaymentTypes((prev) => {
+      let updated = false;
+      const copy = { ...prev };
+      selectedGuests.forEach((g) => {
+        if (!copy[g.id]) {
+          const opts = getGuestAvailablePaymentOptions(g);
+          if (opts.length > 0) {
+            copy[g.id] = opts[0].value;
+          } else {
+            copy[g.id] = "total";
+          }
+          updated = true;
+        }
+      });
+      return updated ? copy : prev;
+    });
+  }, [selectedGuests, payments]);
+
   // Handle guest search
   const handleSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -95,40 +144,38 @@ export const PaymentPortal: React.FC = () => {
         .limit(6);
 
       if (error) throw error;
-      setSearchResults(data || []);
+
+      // Filter out guests that are already selected
+      const filteredResults = (data || []).filter(
+        (guest) => !selectedGuests.some((sg) => sg.id === guest.id)
+      );
+      setSearchResults(filteredResults);
     } catch (err) {
       console.error("Error searching guests:", err);
     }
   };
 
-  // Select guest and load payments
-  const handleSelectGuest = async (guest: Guest) => {
-    setSelectedGuest(guest);
+  const handleSelectGuest = (guest: Guest) => {
+    if (selectedGuests.some((g) => g.id === guest.id)) {
+      setSearchQuery("");
+      setSearchResults([]);
+      return;
+    }
+
+    setSelectedGuests((prev) => [...prev, guest]);
     setSearchQuery("");
     setSearchResults([]);
     setSubmitStatus(null);
-    setReceiptFile(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-
-    await loadGuestPayments(guest.id);
   };
 
-  const loadGuestPayments = async (guestId: string) => {
-    setLoadingPayments(true);
-    try {
-      const { data, error } = await supabase
-        .from("payments")
-        .select("*")
-        .eq("guest_id", guestId)
-        .order("created_at", { ascending: true });
-
-      if (error) throw error;
-      setPayments(data || []);
-    } catch (err) {
-      console.error("Error loading guest payments:", err);
-    } finally {
-      setLoadingPayments(false);
-    }
+  const handleRemoveGuest = (guestId: string) => {
+    setSelectedGuests((prev) => prev.filter((g) => g.id !== guestId));
+    setGuestPaymentTypes((prev) => {
+      const copy = { ...prev };
+      delete copy[guestId];
+      return copy;
+    });
+    setSubmitStatus(null);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -146,99 +193,9 @@ export const PaymentPortal: React.FC = () => {
       .replace(/_+/g, "_");
   };
 
-  const handleSubmitPayment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitStatus(null);
-
-    if (!selectedGuest || !pricingConfig) return;
-    if (!receiptFile) {
-      setSubmitStatus({
-        type: "error",
-        text: "Por favor, selecciona una foto o PDF del comprobante de transferencia.",
-      });
-      return;
-    }
-
-    setSubmitting(true);
-
-    try {
-      // 1. Upload receipt to Storage
-      const fileExt = receiptFile.name.split(".").pop();
-      const cleanName = sanitizeFilename(selectedGuest.full_name);
-      const filePath = `${cleanName}_cuota_${paymentType}_${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("receipts")
-        .upload(filePath, receiptFile);
-
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage.from("receipts").getPublicUrl(filePath);
-      const receiptUrl = urlData.publicUrl;
-
-      // 2. Insert Payment
-      const { error: paymentError } = await supabase.from("payments").insert({
-        guest_id: selectedGuest.id,
-        installment_number: paymentType,
-        amount: computedPayAmount,
-        receipt_url: receiptUrl,
-        status: "pending",
-      });
-
-      if (paymentError) throw paymentError;
-
-      // Trigger push notification to admin in background
-      fetch("/api/notify-payment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          guestName: selectedGuest.full_name,
-          amount: computedPayAmount,
-          installmentNumber: paymentType,
-        }),
-      }).catch((err) => console.error("Error triggering push notification:", err));
-
-      setSubmitStatus({
-        type: "success",
-        text: "¡Comprobante subido con éxito! Se encuentra bajo revisión por el administrador.",
-      });
-
-      setReceiptFile(null);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-
-      // Refresh payments list
-      await loadGuestPayments(selectedGuest.id);
-    } catch (err: any) {
-      console.error("Error submitting payment:", err);
-      setSubmitStatus({
-        type: "error",
-        text: `Error al procesar el pago: ${err.message || "Inténtalo de nuevo."}`,
-      });
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // Reconstruct Financial State
-  const ticketTypeLabel = (type: string) => {
-    switch (type) {
-      case "adulto":
-        return "Adulto";
-      case "menor_3_11":
-        return "Menor (3 a 11 años)";
-      case "menor_0_2":
-        return "Menor (0 a 2 años)";
-      case "adolescente":
-        return "Adolescente (12 a 17 años)";
-      case "trasnoche":
-        return "Trasnoche";
-      default:
-        return type;
-    }
-  };
-
-  const getFinancialState = () => {
-    if (!selectedGuest || !pricingConfig) {
+  // Reconstruct Financial State for a single guest
+  const getGuestFinancialState = (guest: Guest) => {
+    if (!pricingConfig) {
       return {
         totalPrice: 0,
         paidApproved: 0,
@@ -247,10 +204,12 @@ export const PaymentPortal: React.FC = () => {
         isFullyPaid: false,
         remainingBalance: 0,
         history: [] as { name: string; amount: number; status: string }[],
+        hasPendingTotal: false,
       };
     }
 
-    const ticketPrice = pricingConfig.prices[selectedGuest.ticket_type] ?? 0;
+    const ticketPrice = pricingConfig.prices[guest.ticket_type] ?? 0;
+    const guestPayments = payments.filter((p) => p.guest_id === guest.id);
 
     let paidApproved = 0;
     let paidPending = 0;
@@ -258,7 +217,7 @@ export const PaymentPortal: React.FC = () => {
     let hasApprovedTotal = false;
     let hasPendingTotal = false;
 
-    const history = payments.map((p) => {
+    const history = guestPayments.map((p) => {
       let label = "";
       if (p.installment_number === "total") {
         label = "Pago Completo";
@@ -302,15 +261,17 @@ export const PaymentPortal: React.FC = () => {
     };
   };
 
-  const finState = getFinancialState();
-
-  // Determine which payment options to display
-  const getAvailablePaymentOptions = () => {
+  // Determine available payment options for a guest
+  const getGuestAvailablePaymentOptions = (guest: Guest) => {
     const options: { value: string; label: string; amount: number }[] = [];
-    if (!selectedGuest || !pricingConfig) return options;
+    if (!pricingConfig) return options;
 
-    const ticketPrice = pricingConfig.prices[selectedGuest.ticket_type] ?? 0;
-    const installmentPrice = pricingConfig.installmentPrices[selectedGuest.ticket_type] ?? 0;
+    const finState = getGuestFinancialState(guest);
+    const installmentPrice = pricingConfig.installmentPrices[guest.ticket_type] ?? 0;
+
+    if (finState.isFullyPaid) {
+      return options;
+    }
 
     // 1. Total remaining balance option
     if (finState.remainingBalance > 0 && !finState.hasPendingTotal) {
@@ -321,16 +282,14 @@ export const PaymentPortal: React.FC = () => {
       });
     }
 
-    // 2. Installments option (only if window is active)
+    // 2. Installments option
     if (pricingConfig.allowInstallments && finState.remainingBalance > 0) {
-      // Find which installments are already approved or pending
       const activeOrPendingInstallments = new Set(
         payments
-          .filter((p) => p.status === "approved" || p.status === "pending")
+          .filter((p) => p.guest_id === guest.id && (p.status === "approved" || p.status === "pending"))
           .map((p) => p.installment_number)
       );
 
-      // Check cuotas 1 to 4
       for (let i = 1; i <= 4; i++) {
         const instStr = i.toString();
         if (!activeOrPendingInstallments.has(instStr)) {
@@ -346,20 +305,138 @@ export const PaymentPortal: React.FC = () => {
     return options;
   };
 
-  const paymentOptions = getAvailablePaymentOptions();
+  const handleGuestPaymentTypeChange = (guestId: string, value: string) => {
+    setGuestPaymentTypes((prev) => ({
+      ...prev,
+      [guestId]: value,
+    }));
+  };
 
-  // Pre-select the first option if available, otherwise "total"
-  useEffect(() => {
-    if (paymentOptions.length > 0) {
-      setPaymentType(paymentOptions[0].value);
-    } else {
-      setPaymentType("total");
+  // Compute accumulated group amount
+  const getGroupTotalPaymentAmount = () => {
+    return selectedGuests.reduce((sum, guest) => {
+      const options = getGuestAvailablePaymentOptions(guest);
+      const val = guestPaymentTypes[guest.id];
+      const opt = options.find((o) => o.value === val);
+      if (opt) return sum + opt.amount;
+
+      const finState = getGuestFinancialState(guest);
+      return sum + finState.remainingBalance;
+    }, 0);
+  };
+
+  const groupTotalAmount = getGroupTotalPaymentAmount();
+
+  const handleSubmitPayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitStatus(null);
+
+    if (selectedGuests.length === 0 || !pricingConfig) return;
+    if (!receiptFile) {
+      setSubmitStatus({
+        type: "error",
+        text: "Por favor, selecciona una foto o PDF del comprobante de transferencia.",
+      });
+      return;
     }
-  }, [selectedGuest, payments]);
 
-  // Compute selected amount
-  const selectedOption = paymentOptions.find((o) => o.value === paymentType);
-  const computedPayAmount = selectedOption ? selectedOption.amount : finState.remainingBalance;
+    setSubmitting(true);
+
+    try {
+      // 1. Upload receipt to Storage
+      const fileExt = receiptFile.name.split(".").pop();
+      const cleanNames = selectedGuests.map(g => sanitizeFilename(g.full_name)).join("_").substring(0, 80);
+      const filePath = `grupo_${cleanNames}_${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("receipts")
+        .upload(filePath, receiptFile);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from("receipts").getPublicUrl(filePath);
+      const receiptUrl = urlData.publicUrl;
+
+      // 2. Insert Payment entries in a loop
+      const paymentInserts = selectedGuests.map((guest) => {
+        const options = getGuestAvailablePaymentOptions(guest);
+        const val = guestPaymentTypes[guest.id];
+        const opt = options.find((o) => o.value === val);
+        const amount = opt ? opt.amount : getGuestFinancialState(guest).remainingBalance;
+
+        return {
+          guest_id: guest.id,
+          installment_number: val || "total",
+          amount,
+          receipt_url: receiptUrl,
+          status: "pending",
+        };
+      });
+
+      const { error: paymentError } = await supabase
+        .from("payments")
+        .insert(paymentInserts);
+
+      if (paymentError) throw paymentError;
+
+      // Trigger push notification to admin with grouped names
+      const namesList = selectedGuests.map(g => g.full_name).join(", ");
+      fetch("/api/notify-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          guestName: namesList,
+          amount: groupTotalAmount,
+          installmentNumber: "grupal",
+        }),
+      }).catch((err) => console.error("Error triggering push notification:", err));
+
+      setSubmitStatus({
+        type: "success",
+        text: "¡Comprobantes subidos con éxito! Se encuentran bajo revisión por el administrador.",
+      });
+
+      setReceiptFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+
+      // Refresh local payments to update the UI history badges
+      const guestIds = selectedGuests.map((g) => g.id);
+      const { data: refreshedPayments } = await supabase
+        .from("payments")
+        .select("*")
+        .in("guest_id", guestIds)
+        .order("created_at", { ascending: true });
+
+      if (refreshedPayments) {
+        setPayments(refreshedPayments);
+      }
+    } catch (err: any) {
+      console.error("Error submitting payments:", err);
+      setSubmitStatus({
+        type: "error",
+        text: `Error al procesar el pago: ${err.message || "Inténtalo de nuevo."}`,
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const ticketTypeLabel = (type: string) => {
+    switch (type) {
+      case "adulto":
+        return "Adulto";
+      case "menor_3_11":
+        return "Menor (3 a 11 años)";
+      case "menor_0_2":
+        return "Menor (0 a 2 años)";
+      case "adolescente":
+        return "Adolescente (12 a 17 años)";
+      case "trasnoche":
+        return "Trasnoche";
+      default:
+        return type;
+    }
+  };
 
   return (
     <section className={styles["portal-section"]}>
@@ -368,9 +445,7 @@ export const PaymentPortal: React.FC = () => {
 
         <div className={styles["portal-content"]}>
           <div className={styles["portal-header"]}>
-            <h2
-              className={`${styles["portal-title"]} ornate-headline silver-gradient-text`}
-            >
+            <h2 className={`${styles["portal-title"]} ornate-headline silver-gradient-text`}>
               Portal de Pagos
             </h2>
             <p className={styles["portal-subtitle"]}>
@@ -382,7 +457,7 @@ export const PaymentPortal: React.FC = () => {
           <div className={styles["search-container"]}>
             <Input
               type="text"
-              label="BUSCAR INVITADO (Escribe tu nombre)"
+              label="BUSCAR E INGRESAR INVITADOS (Puedes agregar más de uno)"
               placeholder="Ej: Karina Garcia"
               value={searchQuery}
               onChange={handleSearchChange}
@@ -404,6 +479,29 @@ export const PaymentPortal: React.FC = () => {
             )}
           </div>
 
+          {/* Selected Guests list header pills */}
+          {selectedGuests.length > 0 && (
+            <div className={styles["selected-guests-container"]}>
+              <span className={styles["section-label"]}>Invitados a incluir en este pago:</span>
+              <div className={styles["guest-pills-list"]}>
+                {selectedGuests.map((guest) => (
+                  <div key={guest.id} className={styles["guest-pill"]}>
+                    <span>👤 {guest.full_name}</span>
+                    <button
+                      type="button"
+                      className={styles["remove-guest-btn"]}
+                      onClick={() => handleRemoveGuest(guest.id)}
+                      disabled={submitting}
+                      title="Quitar de la lista"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Loading Indicator */}
           {loadingPayments && (
             <p style={{ textAlign: "center", color: "var(--color-primary)" }}>
@@ -411,221 +509,220 @@ export const PaymentPortal: React.FC = () => {
             </p>
           )}
 
-          {/* Selected Guest details and payment upload form */}
-          {selectedGuest && !loadingPayments && (
-            <div className={styles["guest-info-box"]}>
-              <h3 className={styles["guest-title"]}>{selectedGuest.full_name}</h3>
+          {/* Prompt when no guests are selected */}
+          {selectedGuests.length === 0 && (
+            <div className={styles["portal-welcome-box"]}>
+              <span className={styles["welcome-icon"]}>💳</span>
+              <p className={styles["welcome-text"]}>
+                Buscá y seleccioná a los invitados que querés incluir en tu pago para comenzar. Podés agregar múltiples personas si deseas pagarlas juntas.
+              </p>
+            </div>
+          )}
 
-              {selectedGuest.attendance === "No podré asistir" ? (
-                <div className={styles["guest-status"]}>
-                  <p>Registraste que <strong>no podrás asistir</strong> a la fiesta.</p>
-                  <p style={{ fontSize: "13px", color: "var(--color-on-surface-variant)" }}>
-                    Si esta información es incorrecta o cambiaste de opinión, por favor vuelve a registrarte en el formulario de confirmación de asistencia.
-                  </p>
-                </div>
-              ) : (
-                <div className={styles["guest-status"]}>
-                  <p>
-                    Tarjeta registrada: <strong>{ticketTypeLabel(selectedGuest.ticket_type)}</strong>
-                  </p>
-                  <p>
-                    Precio total: <strong>${finState.totalPrice.toLocaleString("es-AR")}</strong>
-                  </p>
+          {/* Selected Guests details list and payment form */}
+          {selectedGuests.length > 0 && !loadingPayments && (
+            <div className={styles["group-info-container"]}>
+              <div className={styles["group-rows-list"]}>
+                {selectedGuests.map((guest) => {
+                  const fin = getGuestFinancialState(guest);
+                  const opts = getGuestAvailablePaymentOptions(guest);
+                  const selectedVal = guestPaymentTypes[guest.id] || "total";
 
-                  {/* Installments count display */}
-                  {selectedGuest.ticket_type !== "menor_0_2" && (
-                    <p>
-                      Cuotas abonadas hasta el momento:{" "}
-                      <strong>
-                        {finState.installmentsApproved}/4 aprobadas
-                      </strong>
-                    </p>
-                  )}
-
-                  {/* Payment History List */}
-                  {finState.history.length > 0 && (
-                    <div className={styles["payment-history"]}>
-                      <span className={styles["payment-history-title"]}>
-                        Historial de pagos informados:
-                      </span>
-                      {finState.history.map((h, index) => (
-                        <div key={index} className={styles["history-item"]}>
-                          <span>
-                            {h.name} (${h.amount.toLocaleString("es-AR")})
-                          </span>
-                          <span
-                            className={`${styles["status-badge"]} ${
-                              h.status === "approved"
-                                ? styles["status-badge--approved"]
-                                : h.status === "pending"
-                                ? styles["status-badge--pending"]
-                                : styles["status-badge--rejected"]
-                            }`}
-                          >
-                            {h.status === "approved"
-                              ? "Aprobado ✅"
-                              : h.status === "pending"
-                              ? "Pendiente 👁️"
-                              : "Rechazado ❌"}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Check if fully paid */}
-                  {finState.isFullyPaid ? (
-                    <div
-                      className={styles["upload-success-container"]}
-                      style={{ marginTop: "16px" }}
-                    >
-                      <span>🎉 ¡Tarjeta totalmente abonada y aprobada! ¡Muchas gracias!</span>
-                    </div>
-                  ) : selectedGuest.ticket_type === "menor_0_2" ? (
-                    <div
-                      className={styles["upload-success-container"]}
-                      style={{ marginTop: "16px", background: "rgba(132, 173, 255, 0.08)", color: "var(--color-primary)", border: "1px solid rgba(132, 173, 255, 0.25)" }}
-                    >
-                      <span>👶 Las entradas de menores de 0 a 2 años no tienen costo.</span>
-                    </div>
-                  ) : (
-                    /* Form to upload next payment receipt */
-                    <form
-                      onSubmit={handleSubmitPayment}
-                      className={styles["form-group"]}
-                      style={{ marginTop: "20px" }}
-                    >
-                      {/* Bank Details */}
-                      <div className={attendanceStyles["attendance-section__bank-info"]}>
-                        <div className={attendanceStyles["attendance-section__bank-title"]}>
-                          Datos de Transferencia Bancaria
-                        </div>
-                        <div className={attendanceStyles["attendance-section__bank-details"]}>
-                          <p>
-                            <strong>Titular:</strong> KARINA ANDREA GARCIA
-                          </p>
-                          <p>
-                            <strong>CUIL:</strong> 27-24012475-6
-                          </p>
-                          <p>
-                            <strong>CBU:</strong> 0000003100084572082442
-                          </p>
-                           <p>
-                             <strong>Alias:</strong> karysouvenirs
-                             <button
-                               type="button"
-                               onClick={handleCopyAlias}
-                               style={{
-                                 background: "rgba(132, 173, 255, 0.15)",
-                                 border: "1px solid rgba(132, 173, 255, 0.3)",
-                                 color: "var(--color-primary)",
-                                 borderRadius: "4px",
-                                 padding: "2px 8px",
-                                 fontSize: "11px",
-                                 cursor: "pointer",
-                                 marginLeft: "8px",
-                                 transition: "background 0.2s",
-                               }}
-                             >
-                               {copiedAlias ? "¡Copiado!" : "Copiar"}
-                             </button>
-                           </p>
-                        </div>
+                  return (
+                    <div key={guest.id} className={styles["individual-guest-row"]}>
+                      <div className={styles["individual-guest-header"]}>
+                        <span className={styles["individual-guest-name"]}>👤 {guest.full_name}</span>
+                        <span className={styles["individual-guest-ticket-label"]}>
+                          Tarjeta: {ticketTypeLabel(guest.ticket_type)}
+                        </span>
                       </div>
 
-                      <p style={{ fontSize: "12.5px", color: "#ffd0d0", margin: "6px 0 12px 0", textAlign: "left", lineHeight: "1.4", borderLeft: "2px solid #ff716c", paddingLeft: "8px" }}>
-                        ⚠️ <strong>Importante:</strong> Después del 30 de Octubre el pago se realiza en una sola cuota (pago total) y la tarjeta tiene un recargo de $10.000 para todas las categorías.
-                      </p>
-
-                      {paymentOptions.length > 0 ? (
-                        <>
-                          <div className={attendanceStyles["attendance-section__form-row"]}>
+                      {guest.attendance === "No podré asistir" ? (
+                        <div className={styles["individual-guest-no-attend"]}>
+                          ❌ Registró que no asistirá (sin costo)
+                        </div>
+                      ) : fin.isFullyPaid ? (
+                        <div className={styles["individual-guest-paid"]}>
+                          🎉 ¡Tarjeta totalmente abonada y aprobada!
+                        </div>
+                      ) : guest.ticket_type === "menor_0_2" ? (
+                        <div className={styles["individual-guest-free"]}>
+                          👶 Las entradas de menores de 0 a 2 años no tienen costo.
+                        </div>
+                      ) : (
+                        <div className={styles["individual-guest-payment-form"]}>
+                          {/* Individual Concept Select */}
+                          <div className={styles["concept-select-container"]}>
                             <Select
-                              name="paymentType"
+                              name={`concept_${guest.id}`}
                               label="CONCEPTO A INFORMAR"
-                              value={paymentType}
-                              onChange={(e) => setPaymentType(e.target.value)}
+                              value={selectedVal}
+                              onChange={(e) => handleGuestPaymentTypeChange(guest.id, e.target.value)}
                               disabled={submitting}
                             >
-                              {paymentOptions.map((opt) => (
+                              {opts.map((opt) => (
                                 <option key={opt.value} value={opt.value}>
                                   {opt.label}
                                 </option>
                               ))}
                             </Select>
+                          </div>
 
-                            <div className={attendanceStyles["attendance-section__file-input"]}>
-                              <span
-                                className={attendanceStyles["attendance-section__file-label"]}
-                              >
-                                COMPROBANTE (FOTO / PDF)
-                              </span>
-                              <div
-                                className={
-                                  attendanceStyles["attendance-section__file-input-wrapper"]
-                                }
-                                onClick={() => !submitting && fileInputRef.current?.click()}
-                              >
-                                {receiptFile ? receiptFile.name : "Seleccionar Archivo..."}
+                          {/* Individual Payment History */}
+                          {fin.history.length > 0 && (
+                            <div className={styles["individual-guest-history"]}>
+                              <span className={styles["history-label"]}>Historial de pagos:</span>
+                              <div className={styles["history-pills"]}>
+                                {fin.history.map((h, idx) => (
+                                  <span
+                                    key={idx}
+                                    className={`${styles["history-pill-badge"]} ${
+                                      h.status === "approved"
+                                        ? styles["status-badge--approved"]
+                                        : h.status === "pending"
+                                        ? styles["status-badge--pending"]
+                                        : styles["status-badge--rejected"]
+                                    }`}
+                                  >
+                                    {h.name} ({h.status === "approved" ? "OK" : h.status === "pending" ? "Pend" : "Rech"})
+                                  </span>
+                                ))}
                               </div>
-                              <input
-                                type="file"
-                                ref={fileInputRef}
-                                style={{ display: "none" }}
-                                accept="image/*,application/pdf"
-                                onChange={handleFileChange}
-                                disabled={submitting}
-                              />
-                            </div>
-                          </div>
-
-                          {pricingConfig && !pricingConfig.allowInstallments && (
-                            <p style={{ fontSize: "12.5px", color: "#ff716c", margin: 0, fontWeight: "600" }}>
-                              * El pago en cuotas ya no está disponible después del 30 de Octubre. Actualmente solo se permite saldar el saldo restante total con el recargo correspondiente.
-                            </p>
-                          )}
-
-                          <div className={attendanceStyles["attendance-section__amount-badge"]}>
-                            Monto a transferir: ${computedPayAmount.toLocaleString("es-AR")}
-                          </div>
-
-                          {submitStatus && (
-                            <div
-                              className={`${attendanceStyles["attendance-section__message"]} ${
-                                submitStatus.type === "success"
-                                  ? attendanceStyles["attendance-section__message--success"]
-                                  : attendanceStyles["attendance-section__message--error"]
-                              }`}
-                            >
-                              {submitStatus.text}
                             </div>
                           )}
-
-                          <Button type="submit" variant="silver" disabled={submitting}>
-                            {submitting ? "SUBIENDO..." : "INFORMAR PAGO"}
-                          </Button>
-                        </>
-                      ) : (
-                        <div
-                          className={attendanceStyles["attendance-section__message"]}
-                          style={{
-                            background: "rgba(241, 196, 15, 0.1)",
-                            color: "#f1c40f",
-                            border: "1px solid rgba(241, 196, 15, 0.25)",
-                            textAlign: "center",
-                          }}
-                        >
-                          Ya has subido los comprobantes para todas tus cuotas/pago total. Se encuentran pendientes de revisión por el administrador.
                         </div>
                       )}
-                    </form>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Form group for transfer upload */}
+              {groupTotalAmount > 0 ? (
+                <form
+                  onSubmit={handleSubmitPayment}
+                  className={styles["form-group"]}
+                  style={{ marginTop: "28px" }}
+                >
+                  {/* Bank Details */}
+                  <div className={attendanceStyles["attendance-section__bank-info"]}>
+                    <div className={attendanceStyles["attendance-section__bank-title"]}>
+                      Datos de Transferencia Bancaria
+                    </div>
+                    <div className={attendanceStyles["attendance-section__bank-details"]}>
+                      <p>
+                        <strong>Titular:</strong> KARINA ANDREA GARCIA
+                      </p>
+                      <p>
+                        <strong>CUIL:</strong> 27-24012475-6
+                      </p>
+                      <p>
+                        <strong>CBU:</strong> 0000003100084572082442
+                      </p>
+                      <p>
+                        <strong>Alias:</strong> karysouvenirs
+                        <button
+                          type="button"
+                          onClick={handleCopyAlias}
+                          style={{
+                            background: "rgba(132, 173, 255, 0.15)",
+                            border: "1px solid rgba(132, 173, 255, 0.3)",
+                            color: "var(--color-primary)",
+                            borderRadius: "4px",
+                            padding: "2px 8px",
+                            fontSize: "11px",
+                            cursor: "pointer",
+                            marginLeft: "8px",
+                            transition: "background 0.2s",
+                          }}
+                        >
+                          {copiedAlias ? "¡Copiado!" : "Copiar"}
+                        </button>
+                      </p>
+                    </div>
+                  </div>
+
+                  <p style={{ fontSize: "12.5px", color: "#ffd0d0", margin: "6px 0 12px 0", textAlign: "left", lineHeight: "1.4", borderLeft: "2px solid #ff716c", paddingLeft: "8px" }}>
+                    ⚠️ <strong>Importante:</strong> Después del 30 de Octubre el pago se realiza en una sola cuota (pago total) y la tarjeta tiene un recargo de $10.000 para todas las categorías.
+                  </p>
+
+                  <div className={attendanceStyles["attendance-section__form-row"]}>
+                    <div
+                      className={attendanceStyles["attendance-section__file-input"]}
+                      style={{ gridColumn: "span 2" }}
+                    >
+                      <span className={attendanceStyles["attendance-section__file-label"]}>
+                        COMPROBANTE GENERAL DE TRANSFERENCIA (FOTO / PDF)
+                      </span>
+                      <div
+                        className={attendanceStyles["attendance-section__file-input-wrapper"]}
+                        onClick={() => !submitting && fileInputRef.current?.click()}
+                      >
+                        {receiptFile ? receiptFile.name : "Seleccionar Archivo..."}
+                      </div>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        style={{ display: "none" }}
+                        accept="image/*,application/pdf"
+                        onChange={handleFileChange}
+                        disabled={submitting}
+                      />
+                    </div>
+                  </div>
+
+                  {pricingConfig && !pricingConfig.allowInstallments && (
+                    <p style={{ fontSize: "12.5px", color: "#ff716c", margin: "0 0 12px 0", fontWeight: "600" }}>
+                      * El pago en cuotas ya no está disponible después del 30 de Octubre. Actualmente solo se permite saldar el saldo restante total con el recargo correspondiente.
+                    </p>
                   )}
+
+                  <div
+                    className={attendanceStyles["attendance-section__amount-badge"]}
+                    style={{ fontSize: "16px", padding: "16px", borderRadius: "10px" }}
+                  >
+                    Monto General a Transferir: ${groupTotalAmount.toLocaleString("es-AR")}
+                  </div>
+
+                  {submitStatus && (
+                    <div
+                      className={`${attendanceStyles["attendance-section__message"]} ${
+                        submitStatus.type === "success"
+                          ? attendanceStyles["attendance-section__message--success"]
+                          : attendanceStyles["attendance-section__message--error"]
+                      }`}
+                    >
+                      {submitStatus.text}
+                    </div>
+                  )}
+
+                  <Button type="submit" variant="silver" disabled={submitting}>
+                    {submitting ? "SUBIENDO..." : "INFORMAR PAGO GRUPAL"}
+                  </Button>
+                </form>
+              ) : (
+                <div
+                  className={attendanceStyles["attendance-section__message"]}
+                  style={{
+                    background: "rgba(46, 204, 113, 0.1)",
+                    color: "#2ecc71",
+                    border: "1px solid rgba(46, 204, 113, 0.25)",
+                    textAlign: "center",
+                    marginTop: "24px",
+                  }}
+                >
+                  🎉 Todos los invitados seleccionados tienen sus tarjetas totalmente abonadas. ¡Muchas gracias!
                 </div>
               )}
             </div>
           )}
 
-          <Button type="button" variant="text" href="/?skipEnvelope=true" style={{ alignSelf: "center" }}>
+          <Button
+            type="button"
+            variant="text"
+            href="/?skipEnvelope=true"
+            style={{ alignSelf: "center" }}
+          >
             Volver a la Invitación
           </Button>
         </div>

@@ -70,7 +70,25 @@ export default function AdminDashboard() {
     try {
       const registration = await navigator.serviceWorker.ready;
       const existingSubscription = await registration.pushManager.getSubscription();
-      setNotificationsEnabled(!!existingSubscription);
+
+      if (existingSubscription) {
+        // Query database to see if this specific subscription still exists
+        const { data, error } = await supabase
+          .from("push_subscriptions")
+          .select("id")
+          .eq("subscription->>endpoint", existingSubscription.endpoint)
+          .maybeSingle();
+
+        if (error || !data) {
+          // If it doesn't exist in Supabase anymore, clean up local subscription
+          await existingSubscription.unsubscribe();
+          setNotificationsEnabled(false);
+        } else {
+          setNotificationsEnabled(true);
+        }
+      } else {
+        setNotificationsEnabled(false);
+      }
     } catch (err) {
       console.error("Error checking push subscription:", err);
     }
@@ -264,7 +282,9 @@ export default function AdminDashboard() {
     .filter((p) => p.status === "approved")
     .reduce((sum, p) => sum + Number(p.amount), 0);
 
-  const pendingReviewsCount = payments.filter((p) => p.status === "pending").length;
+  const pendingReviewsCount = Array.from(new Set(
+    payments.filter((p) => p.status === "pending").map((p) => p.receipt_url)
+  )).length;
 
   // Retrieve payment status for a guest's specific installment
   const getInstallmentPayment = (guestId: string, instNum: string) => {
@@ -330,16 +350,20 @@ export default function AdminDashboard() {
       .reduce((sum, p) => sum + Number(p.amount), 0);
   };
 
-  // Update payment status (Approve / Reject)
+  // Update payment status (Approve / Reject) for the entire group sharing the receipt URL
   const handleUpdatePaymentStatus = async (status: "approved" | "rejected") => {
     if (!selectedPayment) return;
     setUpdatingPaymentId(selectedPayment.id);
 
     try {
+      // Find all payments that share the same receipt URL to update them together
+      const siblingPayments = payments.filter((p) => p.receipt_url === selectedPayment.receipt_url);
+      const idsToUpdate = siblingPayments.map((p) => p.id);
+
       const { error } = await supabase
         .from("payments")
         .update({ status })
-        .eq("id", selectedPayment.id);
+        .in("id", idsToUpdate);
 
       if (error) throw error;
 
@@ -347,7 +371,7 @@ export default function AdminDashboard() {
       setSelectedPayment(null);
       await fetchData();
     } catch (err) {
-      console.error(`Error updating payment to ${status}:`, err);
+      console.error(`Error updating payment group to ${status}:`, err);
       alert(`Error al actualizar el pago: ${status}`);
     } finally {
       setUpdatingPaymentId(null);
@@ -711,18 +735,52 @@ export default function AdminDashboard() {
             </div>
 
             <div className={styles["modal-details"]}>
-              <p>
-                <strong>Invitado:</strong> {selectedPayment.guest_name}
-              </p>
-              <p>
-                <strong>Concepto:</strong>{" "}
-                {selectedPayment.installment_number === "total"
-                  ? "Pago Completo"
-                  : `Cuota ${selectedPayment.installment_number}`}
-              </p>
-              <p>
-                <strong>Monto informado:</strong> ${selectedPayment.amount.toLocaleString("es-AR")}
-              </p>
+              {(() => {
+                const siblings = payments.filter((p) => p.receipt_url === selectedPayment.receipt_url);
+                const isGroup = siblings.length > 1;
+
+                if (isGroup) {
+                  return (
+                    <div style={{ background: "rgba(241, 196, 15, 0.08)", padding: "16px", borderRadius: "8px", border: "1px dashed rgba(241, 196, 15, 0.3)", marginBottom: "12px", width: "100%" }}>
+                      <p style={{ margin: "0 0 8px 0", color: "#f1c40f", fontWeight: "600", fontSize: "14px" }}>
+                        👥 PAGO GRUPAL DETECTADO ({siblings.length} personas)
+                      </p>
+                      <ul style={{ margin: 0, paddingLeft: "16px", fontSize: "13px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                        {siblings.map((sib) => {
+                          const guestObj = guests.find((g) => g.id === sib.guest_id);
+                          return (
+                            <li key={sib.id}>
+                              <strong>{guestObj?.full_name || "Desconocido"}</strong>:{" "}
+                              {sib.installment_number === "total" ? "Pago Total" : `Cuota ${sib.installment_number}`}{" "}
+                              (${sib.amount.toLocaleString("es-AR")})
+                            </li>
+                          );
+                        })}
+                      </ul>
+                      <div style={{ borderTop: "1px solid rgba(255, 255, 255, 0.1)", marginTop: "12px", paddingTop: "8px", fontSize: "14px", fontWeight: "700" }}>
+                        Total General del Comprobante: ${siblings.reduce((sum, s) => sum + Number(s.amount), 0).toLocaleString("es-AR")}
+                      </div>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <>
+                      <p>
+                        <strong>Invitado:</strong> {selectedPayment.guest_name}
+                      </p>
+                      <p>
+                        <strong>Concepto:</strong>{" "}
+                        {selectedPayment.installment_number === "total"
+                          ? "Pago Completo"
+                          : `Cuota ${selectedPayment.installment_number}`}
+                      </p>
+                      <p>
+                        <strong>Monto informado:</strong> ${selectedPayment.amount.toLocaleString("es-AR")}
+                      </p>
+                    </>
+                  );
+                }
+              })()}
               <p>
                 <strong>Fecha subida:</strong>{" "}
                 {new Date(selectedPayment.created_at).toLocaleString("es-AR")}
