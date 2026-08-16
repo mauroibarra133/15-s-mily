@@ -32,6 +32,7 @@ export const AttendanceSection: React.FC = () => {
   } | null>(null);
 
   const [copiedAlias, setCopiedAlias] = useState(false);
+  const [activeTab, setActiveTab] = useState<"rsvp" | "payment">("rsvp");
 
   const handleCopyAlias = () => {
     navigator.clipboard.writeText("karysouvenirs");
@@ -265,16 +266,29 @@ export const AttendanceSection: React.FC = () => {
             </p>
           </div>
 
-          <div className={styles["attendance-section__portal"]}>
-            <p className={styles["attendance-section__portal-text"]}>
-              ¿Ya confirmaste tu presencia y querés informar un pago o consultar tus cuotas?
-            </p>
-            <a href="/pagar" className={styles["attendance-section__portal-link"]}>
-              Ir al Portal de Pagos 💳
-            </a>
+          <div className={styles["attendance-section__tabs"]}>
+            <button
+              type="button"
+              className={`${styles["attendance-section__tab"]} ${
+                activeTab === "rsvp" ? styles["attendance-section__tab--active"] : ""
+              }`}
+              onClick={() => setActiveTab("rsvp")}
+            >
+              ✍️ Confirmar Asistencia (1ra Vez)
+            </button>
+            <button
+              type="button"
+              className={`${styles["attendance-section__tab"]} ${
+                activeTab === "payment" ? styles["attendance-section__tab--active"] : ""
+              }`}
+              onClick={() => setActiveTab("payment")}
+            >
+              💳 Pagar Cuotas / Ver Estado
+            </button>
           </div>
 
-          <form onSubmit={handleSubmit} className={styles["attendance-section__form"]}>
+          {activeTab === "rsvp" ? (
+            <form onSubmit={handleSubmit} className={styles["attendance-section__form"]}>
             <Input
               name="fullName"
               label="NOMBRE COMPLETO (Tal como figura en la tarjeta)"
@@ -480,6 +494,41 @@ export const AttendanceSection: React.FC = () => {
               {submitting ? "PROCESANDO..." : "ENVIAR CONFIRMACIÓN"}
             </Button>
           </form>
+          ) : (
+            <div className={styles["attendance-section__portal-tab-content"]}>
+              <p className={styles["attendance-section__portal-desc"]}>
+                Si ya confirmaste tu presencia y querés gestionar tus pagos, ingresá a nuestro Portal de Pagos interactivo donde podés:
+              </p>
+              <ul className={styles["attendance-section__portal-list-items"]}>
+                <li>
+                  <span className={styles["portal-list-emoji"]}>📋</span>
+                  <div>
+                    <strong>Ver tu estado:</strong> Consultar si tus pagos anteriores fueron aprobados o están en revisión.
+                  </div>
+                </li>
+                <li>
+                  <span className={styles["portal-list-emoji"]}>💵</span>
+                  <div>
+                    <strong>Saber cuánto debés:</strong> Ver el saldo abonado hasta el momento y el total pendiente de tu tarjeta.
+                  </div>
+                </li>
+                <li>
+                  <span className={styles["portal-list-emoji"]}>📤</span>
+                  <div>
+                    <strong>Informar cuotas:</strong> Subir el comprobante de transferencia para tu <strong>2ª, 3ª o 4ª cuota</strong>.
+                  </div>
+                </li>
+              </ul>
+              <Button
+                type="button"
+                variant="silver"
+                href="/pagar"
+                className={styles["attendance-section__portal-btn"]}
+              >
+                IR AL PORTAL DE PAGOS 💳
+              </Button>
+            </div>
+          )}
         </div>
       </Card>
     </section>
