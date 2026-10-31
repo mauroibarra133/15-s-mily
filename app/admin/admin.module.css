@@ -576,3 +576,75 @@
   }
 }
 
+/* Row Actions */
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.action-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--color-on-surface);
+}
+
+.action-btn--edit:hover {
+  background: rgba(132, 173, 255, 0.2);
+  border-color: var(--color-primary);
+  transform: scale(1.1);
+}
+
+.action-btn--delete:hover {
+  background: rgba(231, 76, 60, 0.2);
+  border-color: #e74c3c;
+  transform: scale(1.1);
+}
+
+.action-btn:active {
+  transform: scale(0.95);
+}
+
+/* Edit Form inside Modal */
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.btn-delete-confirm {
+  background: rgba(231, 76, 60, 0.15) !important;
+  color: #ff716c !important;
+  border: 1px solid rgba(231, 76, 60, 0.4) !important;
+  height: 48px !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-delete-confirm:hover {
+  background: rgba(231, 76, 60, 0.28) !important;
+  box-shadow: 0 0 15px rgba(231, 76, 60, 0.3) !important;
+}
+
+.btn-cancel {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--color-on-surface-variant) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  height: 48px !important;
+}
+
+.btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: var(--color-on-surface) !important;
+}
+

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import styles from "./admin.module.css";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { supabase } from "@/lib/supabaseClient";
 import { verifyPasscode } from "./actions";
@@ -44,6 +45,26 @@ export default function AdminDashboard() {
   // Modal Review state
   const [selectedPayment, setSelectedPayment] = useState<(Payment & { guest_name: string }) | null>(null);
   const [updatingPaymentId, setUpdatingPaymentId] = useState<string | null>(null);
+  const [deletingPayment, setDeletingPayment] = useState(false);
+
+  // Edit & Delete Guest state
+  const [editingGuest, setEditingGuest] = useState<Guest | null>(null);
+  const [editForm, setEditForm] = useState<{
+    full_name: string;
+    attendance: string;
+    ticket_type: string;
+    dietary: string;
+  }>({
+    full_name: "",
+    attendance: "Sí, asistiré",
+    ticket_type: "adulto",
+    dietary: "Ninguno",
+  });
+  const [savingGuest, setSavingGuest] = useState(false);
+  const [editError, setEditError] = useState("");
+
+  const [guestToDelete, setGuestToDelete] = useState<Guest | null>(null);
+  const [deletingGuest, setDeletingGuest] = useState(false);
 
   // Check auth on mount
   useEffect(() => {
@@ -367,6 +388,116 @@ export default function AdminDashboard() {
     }
   };
 
+  // Delete payment group
+  const handleDeletePayment = async () => {
+    if (!selectedPayment) return;
+    const siblings = payments.filter((p) => p.receipt_url === selectedPayment.receipt_url);
+    const isGroup = siblings.length > 1;
+
+    const confirmMsg = isGroup
+      ? `¿Estás seguro de que deseas eliminar este comprobante de pago grupal (${siblings.length} registros asociados)? Esta acción no se puede deshacer.`
+      : `¿Estás seguro de que deseas eliminar este pago de ${selectedPayment.guest_name}?`;
+
+    if (!window.confirm(confirmMsg)) return;
+
+    setDeletingPayment(true);
+    try {
+      const idsToDelete = siblings.map((p) => p.id);
+      const { error } = await supabase
+        .from("payments")
+        .delete()
+        .in("id", idsToDelete);
+
+      if (error) throw error;
+
+      setSelectedPayment(null);
+      await fetchData();
+    } catch (err: any) {
+      console.error("Error al eliminar pago:", err);
+      alert(`Error al eliminar pago: ${err.message || err}`);
+    } finally {
+      setDeletingPayment(false);
+    }
+  };
+
+  // Edit Guest Handlers
+  const handleStartEdit = (guest: Guest) => {
+    setEditingGuest(guest);
+    setEditForm({
+      full_name: guest.full_name,
+      attendance: guest.attendance,
+      ticket_type: guest.ticket_type,
+      dietary: guest.dietary || "Ninguno",
+    });
+    setEditError("");
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingGuest) return;
+    if (!editForm.full_name.trim()) {
+      setEditError("El nombre completo es obligatorio.");
+      return;
+    }
+
+    setSavingGuest(true);
+    setEditError("");
+
+    try {
+      const { error } = await supabase
+        .from("guests")
+        .update({
+          full_name: editForm.full_name.trim(),
+          attendance: editForm.attendance,
+          ticket_type: editForm.attendance === "Sí, asistiré" ? editForm.ticket_type : "adulto",
+          dietary: editForm.dietary.trim() || "Ninguno",
+        })
+        .eq("id", editingGuest.id);
+
+      if (error) throw error;
+
+      setEditingGuest(null);
+      await fetchData();
+    } catch (err: any) {
+      console.error("Error al actualizar invitado:", err);
+      setEditError(err.message || "Error al actualizar los datos.");
+    } finally {
+      setSavingGuest(false);
+    }
+  };
+
+  // Delete Guest Handler
+  const handleConfirmDelete = async () => {
+    if (!guestToDelete) return;
+    setDeletingGuest(true);
+
+    try {
+      // 1. Delete associated payments first to prevent foreign key issues
+      const { error: payError } = await supabase
+        .from("payments")
+        .delete()
+        .eq("guest_id", guestToDelete.id);
+
+      if (payError) throw payError;
+
+      // 2. Delete the guest record
+      const { error: guestError } = await supabase
+        .from("guests")
+        .delete()
+        .eq("id", guestToDelete.id);
+
+      if (guestError) throw guestError;
+
+      setGuestToDelete(null);
+      await fetchData();
+    } catch (err: any) {
+      console.error("Error al eliminar invitado:", err);
+      alert(`Error al eliminar invitado: ${err.message || err}`);
+    } finally {
+      setDeletingGuest(false);
+    }
+  };
+
   // Passcode authentication screen
   if (!isAuthenticated) {
     return (
@@ -561,12 +692,13 @@ export default function AdminDashboard() {
                     <th style={{ textAlign: "center" }}>Cuota 4</th>
                     <th style={{ textAlign: "center" }}>Pago Total</th>
                     <th>Monto Aprobado</th>
+                    <th style={{ textAlign: "center" }}>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredGuests.length === 0 ? (
                     <tr>
-                      <td colSpan={9} style={{ textAlign: "center", padding: "30px" }}>
+                      <td colSpan={10} style={{ textAlign: "center", padding: "30px" }}>
                         No hay invitados registrados que coincidan con el filtro.
                       </td>
                     </tr>
@@ -618,6 +750,26 @@ export default function AdminDashboard() {
                             >
                               ${totalPaid.toLocaleString("es-AR")}
                             </span>
+                          </td>
+                          <td style={{ textAlign: "center" }}>
+                            <div className={styles["row-actions"]}>
+                              <button
+                                type="button"
+                                className={`${styles["action-btn"]} ${styles["action-btn--edit"]}`}
+                                title={`Editar a ${guest.full_name}`}
+                                onClick={() => handleStartEdit(guest)}
+                              >
+                                ✏️
+                              </button>
+                              <button
+                                type="button"
+                                className={`${styles["action-btn"]} ${styles["action-btn--delete"]}`}
+                                title={`Eliminar a ${guest.full_name}`}
+                                onClick={() => setGuestToDelete(guest)}
+                              >
+                                🗑️
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -803,7 +955,7 @@ export default function AdminDashboard() {
                 variant="silver"
                 className={styles["btn-reject"]}
                 onClick={() => handleUpdatePaymentStatus("rejected")}
-                disabled={updatingPaymentId !== null}
+                disabled={updatingPaymentId !== null || deletingPayment}
               >
                 {updatingPaymentId === selectedPayment.id ? "PROCESANDO..." : "RECHAZAR PAGO"}
               </Button>
@@ -812,9 +964,173 @@ export default function AdminDashboard() {
                 variant="silver"
                 className={styles["btn-approve"]}
                 onClick={() => handleUpdatePaymentStatus("approved")}
-                disabled={updatingPaymentId !== null}
+                disabled={updatingPaymentId !== null || deletingPayment}
               >
                 {updatingPaymentId === selectedPayment.id ? "PROCESANDO..." : "APROBAR PAGO"}
+              </Button>
+            </div>
+
+            <div style={{ marginTop: "12px", textAlign: "center", borderTop: "1px solid rgba(255, 255, 255, 0.08)", paddingTop: "12px" }}>
+              <button
+                type="button"
+                onClick={handleDeletePayment}
+                disabled={updatingPaymentId !== null || deletingPayment}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "#ff716c",
+                  fontSize: "12px",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                  opacity: 0.85,
+                  padding: "4px 8px",
+                }}
+              >
+                {deletingPayment ? "Eliminando pago..." : "🗑️ Eliminar este comprobante y registros de pago"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Guest Modal */}
+      {editingGuest && (
+        <div className={styles["modal-overlay"]}>
+          <div className={styles["modal-card"]}>
+            <div className={styles["modal-header"]}>
+              <h3 className={styles["modal-title"]}>Editar Invitado</h3>
+              <button
+                className={styles["modal-close"]}
+                onClick={() => setEditingGuest(null)}
+                disabled={savingGuest}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className={styles["edit-form"]}>
+              <Input
+                label="NOMBRE COMPLETO"
+                value={editForm.full_name}
+                onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
+                placeholder="Nombre y Apellido"
+                disabled={savingGuest}
+                required
+              />
+
+              <Select
+                label="ASISTENCIA"
+                value={editForm.attendance}
+                onChange={(e) => setEditForm({ ...editForm, attendance: e.target.value })}
+                disabled={savingGuest}
+              >
+                <option value="Sí, asistiré">Sí, asistiré</option>
+                <option value="No podré asistir">No podré asistir</option>
+              </Select>
+
+              {editForm.attendance === "Sí, asistiré" && (
+                <Select
+                  label="TIPO DE TARJETA"
+                  value={editForm.ticket_type}
+                  onChange={(e) => setEditForm({ ...editForm, ticket_type: e.target.value })}
+                  disabled={savingGuest}
+                >
+                  <option value="adulto">Adulto ($80.000)</option>
+                  <option value="adolescente">Adolescente (12 a 17 años) ($55.000)</option>
+                  <option value="menor_3_11">Menor 3-11 años ($40.000)</option>
+                  <option value="menor_0_2">Menor 0-2 años ($0)</option>
+                </Select>
+              )}
+
+              <Input
+                label="REQUISITO ALIMENTARIO"
+                value={editForm.dietary}
+                onChange={(e) => setEditForm({ ...editForm, dietary: e.target.value })}
+                placeholder="Ninguno, Celíaco, Vegetariano, etc."
+                disabled={savingGuest}
+              />
+
+              {editError && (
+                <p style={{ fontSize: "13px", color: "#e74c3c", margin: 0 }}>{editError}</p>
+              )}
+
+              <div className={styles["modal-actions"]}>
+                <Button
+                  type="button"
+                  variant="silver"
+                  className={styles["btn-cancel"]}
+                  onClick={() => setEditingGuest(null)}
+                  disabled={savingGuest}
+                >
+                  CANCELAR
+                </Button>
+                <Button
+                  type="submit"
+                  variant="silver"
+                  disabled={savingGuest}
+                >
+                  {savingGuest ? "GUARDANDO..." : "GUARDAR CAMBIOS"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Guest Confirmation Modal */}
+      {guestToDelete && (
+        <div className={styles["modal-overlay"]}>
+          <div className={styles["modal-card"]}>
+            <div className={styles["modal-header"]}>
+              <h3 className={styles["modal-title"]} style={{ color: "#ff716c" }}>
+                Eliminar Registro
+              </h3>
+              <button
+                className={styles["modal-close"]}
+                onClick={() => setGuestToDelete(null)}
+                disabled={deletingGuest}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className={styles["modal-details"]}>
+              <p style={{ margin: "0 0 8px 0", fontSize: "15px" }}>
+                ¿Estás seguro de que deseas eliminar a <strong>{guestToDelete.full_name}</strong>?
+              </p>
+              <div
+                style={{
+                  background: "rgba(231, 76, 60, 0.1)",
+                  border: "1px solid rgba(231, 76, 60, 0.3)",
+                  padding: "12px",
+                  borderRadius: "8px",
+                  fontSize: "13px",
+                  color: "#ff716c",
+                  lineHeight: "1.4",
+                }}
+              >
+                ⚠️ <strong>Atención:</strong> Se eliminará el registro del invitado y cualquier pago o cuota registrada a su nombre en la base de datos. Esta acción no se puede deshacer.
+              </div>
+            </div>
+
+            <div className={styles["modal-actions"]}>
+              <Button
+                type="button"
+                variant="silver"
+                className={styles["btn-cancel"]}
+                onClick={() => setGuestToDelete(null)}
+                disabled={deletingGuest}
+              >
+                CANCELAR
+              </Button>
+              <Button
+                type="button"
+                variant="silver"
+                className={styles["btn-delete-confirm"]}
+                onClick={handleConfirmDelete}
+                disabled={deletingGuest}
+              >
+                {deletingGuest ? "ELIMINANDO..." : "SÍ, ELIMINAR"}
               </Button>
             </div>
           </div>
