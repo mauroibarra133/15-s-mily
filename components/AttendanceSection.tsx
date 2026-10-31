@@ -651,7 +651,7 @@ export const AttendanceSection: React.FC = () => {
                 <div className={styles["attendance-section__payment-box"]}>
                   <div className={styles.policyAlertContainer}>
                     <p className={styles.policyAlertText}>
-                      ⚠️ Pago único y recargo de $10.000 después del 30 de Octubre.
+                      ⚠️ Pago en una sola cuota después del 30 de Octubre.
                     </p>
                     <div className={styles.policyInfoTriggerWrapper}>
                       <button
@@ -666,7 +666,7 @@ export const AttendanceSection: React.FC = () => {
                       {showPolicyPopover && (
                         <div className={styles.policyPopover}>
                           <p style={{ margin: 0, fontSize: "12.5px", lineHeight: "1.4", color: "var(--color-on-surface)" }}>
-                            Para confirmar tu presencia debés informar la transferencia de la primera cuota o el pago total. Después del 30 de Octubre el pago se realiza en una sola cuota (pago total) y la tarjeta tiene un recargo de $10.000 para todas las categorías.
+                            Para confirmar tu presencia debés informar la transferencia del pago total. Después del 30 de Octubre el pago se realiza en una sola cuota (pago total).
                           </p>
                         </div>
                       )}
@@ -757,7 +757,7 @@ export const AttendanceSection: React.FC = () => {
 
                   {!pricingConfig.allowInstallments && (
                     <p className={styles["attendance-section__warning-strong"]}>
-                      * El pago en cuotas ya no está disponible. Después del 30 de Octubre solo se permite abonar en un único pago total con recargo.
+                      * El pago en cuotas ya no está disponible. Después del 30 de Octubre solo se permite abonar en un único pago total.
                     </p>
                   )}
 

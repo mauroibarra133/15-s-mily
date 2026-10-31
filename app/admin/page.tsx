@@ -224,27 +224,16 @@ export default function AdminDashboard() {
     setPasscode("");
   };
 
-  // Helper to calculate price
-  const getTicketPrice = (type: string, createdAt: string) => {
-    const deadlineUTC = new Date("2026-10-31T02:59:59Z"); // Argentina 2026-10-30T23:59:59-03:00
-    const isEarly = new Date(createdAt).getTime() <= deadlineUTC.getTime();
-
-    const prices: Record<string, Record<string, number>> = {
-      early: {
-        adulto: 80000,
-        menor_3_11: 40000,
-        menor_0_2: 0,
-        adolescente: 55000,
-      },
-      late: {
-        adulto: 90000,
-        menor_3_11: 50000,
-        menor_0_2: 0,
-        adolescente: 65000,
-      },
+  // Helper to calculate price (adultos: 80.000, adolescentes: 55.000, niños: 40.000)
+  const getTicketPrice = (type: string, _createdAt?: string) => {
+    const prices: Record<string, number> = {
+      adulto: 80000,
+      menor_3_11: 40000,
+      menor_0_2: 0,
+      adolescente: 55000,
     };
 
-    return prices[isEarly ? "early" : "late"][type] ?? 0;
+    return prices[type] ?? 0;
   };
 
   const ticketTypeLabel = (type: string) => {

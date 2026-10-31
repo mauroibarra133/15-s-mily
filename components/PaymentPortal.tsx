@@ -608,7 +608,7 @@ export const PaymentPortal: React.FC = () => {
                 >
                   <div className={styles.policyAlertContainer}>
                     <p className={styles.policyAlertText}>
-                      ⚠️ Pago único y recargo de $10.000 después del 30 de Octubre.
+                      ⚠️ Pago en una sola cuota después del 30 de Octubre.
                     </p>
                     <div className={styles.policyInfoTriggerWrapper}>
                       <button
@@ -623,7 +623,7 @@ export const PaymentPortal: React.FC = () => {
                       {showPolicyPopover && (
                         <div className={styles.policyPopover}>
                           <p style={{ margin: 0, fontSize: "12.5px", lineHeight: "1.4", color: "var(--color-on-surface)" }}>
-                            Después del 30 de Octubre el pago se realiza en una sola cuota (pago total) y la tarjeta tiene un recargo de $10.000 para todas las categorías.
+                            Después del 30 de Octubre el pago se realiza en una sola cuota (pago total).
                           </p>
                         </div>
                       )}
@@ -715,7 +715,7 @@ export const PaymentPortal: React.FC = () => {
 
                   {pricingConfig && !pricingConfig.allowInstallments && (
                     <p style={{ fontSize: "12.5px", color: "#ff716c", margin: "0 0 12px 0", fontWeight: "600" }}>
-                      * El pago en cuotas ya no está disponible después del 30 de Octubre. Actualmente solo se permite saldar el saldo restante total con el recargo correspondiente.
+                      * El pago en cuotas ya no está disponible después del 30 de Octubre. Actualmente solo se permite saldar el saldo restante total.
                     </p>
                   )}
 

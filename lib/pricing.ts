@@ -45,20 +45,13 @@ export async function getCurrentPricingConfig(): Promise<PricingConfig> {
 
   const isEarly = argentinaTime.getTime() <= deadline.getTime();
 
-  // Price matrix
-  const prices: Record<string, number> = isEarly
-    ? {
-        adulto: 80000,
-        menor_3_11: 40000,
-        menor_0_2: 0,
-        adolescente: 55000,
-      }
-    : {
-        adulto: 90000,
-        menor_3_11: 50000,
-        menor_0_2: 0,
-        adolescente: 65000,
-      };
+  // Price matrix (adultos: 80.000, adolescentes: 55.000, niños: 40.000)
+  const prices: Record<string, number> = {
+    adulto: 80000,
+    menor_3_11: 40000,
+    menor_0_2: 0,
+    adolescente: 55000,
+  };
 
   // Installment configuration:
   // Allow installments up to October 30th (isEarly)
